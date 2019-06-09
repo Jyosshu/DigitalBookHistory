@@ -9,11 +9,13 @@ CREATE TABLE artist
 );
 
 -- Media Kind table
-CREATE TABLE media_kind
+CREATE TABLE kind
 (
-    --id SERIAL PRIMARY KEY,
-    kindId INTEGER PRIMARY KEY,
-    kind VARCHAR(255)
+    id INTEGER PRIMARY KEY,
+    name VARCHAR(255),
+    enable BOOLEAN,
+    singular VARCHAR(30) NULL,
+    plural VARCHAR(30) NULL
 );
 
 -- Book table
@@ -28,10 +30,16 @@ CREATE TABLE digital_item
     borrowed INTEGER NULL,
     returned INTEGER NULL,
     circId INTEGER NULL,
-    CONSTRAINT fk_digital_item_media_kind FOREIGN KEY (kindId) REFERENCES media_kind(kindId)
+    CONSTRAINT fk_digital_item_media_kind FOREIGN KEY (kindId) REFERENCES media_kind(id)
 );
 
-
+CREATE TABLE ratings
+(
+    id INTEGER PRIMARY KEY,
+    ratingSystemId INTEGER NULL, -- probably a rantingSystemId, (movieRatings, televisionRatings, comicRatings)
+    rating VARCHAR(10) NULL,
+    rank INTEGER NULL
+);
 
 -- ROLLBACK;
 
