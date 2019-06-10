@@ -12,8 +12,8 @@ CREATE TABLE artist
 CREATE TABLE kind
 (
     id INTEGER PRIMARY KEY,
-    name VARCHAR(255),
-    enable BOOLEAN,
+    name VARCHAR(255) NULL,
+    enabled BOOLEAN NULL,
     singular VARCHAR(30) NULL,
     plural VARCHAR(30) NULL
 );
@@ -22,15 +22,22 @@ CREATE TABLE kind
 CREATE TABLE digital_item
 (
     id SERIAL PRIMARY KEY,
-    titleId INTEGER NULL,
+    titleId BIGINT NULL,
     title VARCHAR(255) NULL,
-    kindId INTEGER NULL,
-    artistName VARCHAR(255) NULL,
+    kindId BIGINT NULL,
+    artistId INTEGER NULL,
+    --artistName VARCHAR(255) NULL,
+    demo BOOLEAN NULL,
+    pa BOOLEAN NULL,
+    edited BOOLEAN NULL,    
     artKey VARCHAR(255) NULL,
-    borrowed INTEGER NULL,
-    returned INTEGER NULL,
-    circId INTEGER NULL,
-    CONSTRAINT fk_digital_item_media_kind FOREIGN KEY (kindId) REFERENCES media_kind(id)
+    borrowed BIGINT NULL,
+    returned BIGINT NULL,
+    circId BIGINT NULL,
+    fixedLayout BOOLEAN NULL,
+    readAlong BOOLEAN NULL,
+    CONSTRAINT fk_digital_item_media_kind FOREIGN KEY (kindId) REFERENCES media_kind(id),
+    CONSTRAINT fk_digital_item_artist FOREIGN KEY (artistId) REFERENCES artist(artistId)
 );
 
 CREATE TABLE ratings
@@ -40,6 +47,18 @@ CREATE TABLE ratings
     rating VARCHAR(10) NULL,
     rank INTEGER NULL
 );
+
+-- images
+CREATE TABLE images
+(
+    id SERIAL PRIMARY KEY,
+    altText VARCHAR(255) NULL,
+    artKey VARCHAR(255) NULL,
+    remoteUrl VARCHAR(255) NULL,
+    localUrl VARCHAR(255) NULL,
+    CONSTRAINT fk_image_digital_item FOREIGN KEY (artKey) REFERENCES digital_item(artKey)
+);
+
 
 -- ROLLBACK;
 

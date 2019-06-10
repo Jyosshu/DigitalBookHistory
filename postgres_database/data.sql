@@ -2,12 +2,12 @@
 
 
 -- *** kind ***
-INSERT INTO kind (id,name,enabled,singular,pluarl) VALUES (5,'EBOOK',false,'ebook','Ebooks');
-INSERT INTO kind (id,name,enabled,singular,pluarl) VALUES (6,'MUSIC',true,'music','Music');
-INSERT INTO kind (id,name,enabled,singular,pluarl) VALUES (7,'MOVIE',true,'movie','Movies');
-INSERT INTO kind (id,name,enabled,singular,pluarl) VALUES (8,'AUDIOBOOK',false,'audiobook','Audibooks');
-INSERT INTO kind (id,name,enabled,singular,pluarl) VALUES (9,'TELEVISION',true,'television','Television');
-INSERT INTO kind (id,name,enabled,singular,pluarl) VALUES (10,'COMIC',true,'comic','Comics');
+INSERT INTO kind (id,name,enabled,singular,plural) VALUES (5,'EBOOK',false,'ebook','Ebooks');
+INSERT INTO kind (id,name,enabled,singular,plural) VALUES (6,'MUSIC',true,'music','Music');
+INSERT INTO kind (id,name,enabled,singular,plural) VALUES (7,'MOVIE',true,'movie','Movies');
+INSERT INTO kind (id,name,enabled,singular,plural) VALUES (8,'AUDIOBOOK',false,'audiobook','Audibooks');
+INSERT INTO kind (id,name,enabled,singular,plural) VALUES (9,'TELEVISION',true,'television','Television');
+INSERT INTO kind (id,name,enabled,singular,plural) VALUES (10,'COMIC',true,'comic','Comics');
 
 -- *** ratings ***
 INSERT INTO ratings (id,ratingSystemId,rating,rank) VALUES (1,1,'G',1);
