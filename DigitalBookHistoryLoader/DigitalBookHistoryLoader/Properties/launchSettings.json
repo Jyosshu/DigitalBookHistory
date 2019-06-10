@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "DigitalBookHistoryLoader": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\Users\\Josh Wygle\\source\\repos\\DigitalBookHistory\\Hoopla_History_20190609.json\""
+    }
+  }
+}
