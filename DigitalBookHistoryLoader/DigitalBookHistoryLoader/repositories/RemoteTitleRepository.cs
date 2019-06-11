@@ -63,22 +63,26 @@ namespace DigitalBookHistoryLoader.repositories
             {
                 try
                 {
-                    Dictionary<long, string> listCheck = new Dictionary<long, string>();
+                    Dictionary<long, string> artKeyUniqueCheck = new Dictionary<long, string>();
+                    Dictionary<int, string> artistUniqueCheck = new Dictionary<int, string>();
+
                     string query = @"INSERT INTO digital_item (id, titleId, title, kindId, artistName, demo, pa, edited, artKey, borrowed, returned, circId, fixedLayout, readAlong) ";
                     string values = @"VALUES (@Id, @TitleId, @Title, @KindId, @ArtistName, @Demo, @Pa, @Edited, @ArtKey, @Borrowed, @Returned, @CircId, @FixedLayout, @ReadAlong);";
 
-                    int nextId = 0;
+                    int nextDigitalItemId = 0;
+                    int nextArtistId = 0;
 
                     var result = connection.Execute("SELECT MAX(id) FROM digital_item");
+                    var artistResult = connection.Execute("SELECT MAX(artistId) FROM artist");
 
-                    if (result >= 0)
-                    {
-                        nextId = result + 1;
-                    }
+                    if (result >= 0) nextDigitalItemId = result + 1;
+                    if (artistResult >= 0) nextArtistId = artistResult + 1;
 
                     var results = connection.Query("SELECT titleId, artKey FROM digital_item").ToDictionary(row => (long)row.titleId, row => (string)row.artKey);
+                    var artistResults = connection.Query("SELECT artistId, artistName FROM artist").ToDictionary(row => (int)row.artistId, row => (string)row.artistName);
 
-                    listCheck = results;
+                    artKeyUniqueCheck = results;
+                    artistUniqueCheck = artistResults;
 
                     using (IDbTransaction transaction = connection.BeginTransaction())
                     {
@@ -86,12 +90,19 @@ namespace DigitalBookHistoryLoader.repositories
                         {
                             foreach (DigitalItem item in digitalItems)
                             {
-                                if (!listCheck.ContainsKey(item.TitleId))
+                                if (!artistUniqueCheck.ContainsValue(item.ArtistName))
+                                {
+                                    var insertedRow = connection.Execute("INSERT INTO artist (artistId, artistName) VALUES (@ArtistId, @ArtistName)", new { ArtistId = nextArtistId, item.ArtistName }, transaction: transaction);
+                                    if (insertedRow != 1) transaction.Rollback();
+                                    else nextArtistId++;
+                                }
+
+                                if (!artKeyUniqueCheck.ContainsKey(item.TitleId))
                                 {
                                     var insertedRow = connection.Execute(query + values,
                                         new
                                         {
-                                            Id = nextId,
+                                            Id = nextDigitalItemId,
                                             item.TitleId,
                                             item.Title,
                                             item.KindId,
@@ -107,18 +118,13 @@ namespace DigitalBookHistoryLoader.repositories
                                             ReadAlong = (item.ReadAlong == false) ? 0 : 1
                                         }, transaction);
 
-                                    if (insertedRow != 1)
-                                    {
-                                        transaction.Rollback();
-                                    }
-                                    else
-                                    {
-                                        nextId++;
-                                    }
+                                    if (insertedRow != 1) transaction.Rollback();
 
-                                    if (!listCheck.ContainsKey(item.TitleId))
+                                    else nextDigitalItemId++;
+
+                                    if (!artKeyUniqueCheck.ContainsKey(item.TitleId))
                                     {
-                                        listCheck.Add(item.TitleId, item.ArtKey);
+                                        artKeyUniqueCheck.Add(item.TitleId, item.ArtKey);
                                     }
                                 }
                             }
@@ -130,7 +136,6 @@ namespace DigitalBookHistoryLoader.repositories
                             transaction.Rollback();
                             Console.WriteLine($"Exception Caught!  Message : {e.Message}");
                         }
-
                     }
                     return true;
                 }
