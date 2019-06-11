@@ -52,6 +52,8 @@ namespace DigitalBookHistoryLoader.repositories
                 Console.WriteLine($"Exception Caught!  Message : {e.Message}");
             }
 
+            digitalItems.Reverse();
+
             return digitalItems;
         }
 
@@ -74,16 +76,17 @@ namespace DigitalBookHistoryLoader.repositories
                         nextId = result + 1;
                     }
 
+                    var results = connection.Query("SELECT titleId, artKey FROM digital_item").ToDictionary(row => (long)row.titleId, row => (string)row.artKey);
+
+                    listCheck = results;
+
                     using (IDbTransaction transaction = connection.BeginTransaction())
                     {
                         try
                         {
                             foreach (DigitalItem item in digitalItems)
                             {
- 
-                                var results = connection.Execute("SELECT titleId FROM digital_item WHERE titleId = @TitleId AND artKey = @ArtKey", new { item.TitleId, item.ArtKey }, transaction);
-
-                                if (results <= 0 && !listCheck.ContainsKey(item.TitleId))
+                                if (!listCheck.ContainsKey(item.TitleId))
                                 {
                                     var insertedRow = connection.Execute(query + values,
                                         new

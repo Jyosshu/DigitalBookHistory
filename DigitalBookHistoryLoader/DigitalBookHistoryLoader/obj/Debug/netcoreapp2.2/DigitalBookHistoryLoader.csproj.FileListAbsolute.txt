@@ -1,11 +1,22 @@
-C:\Users\Josh Wygle\source\repos\DigitalBookHistory\DigitalBookHistoryLoader\DigitalBookHistoryLoader\bin\Debug\netcoreapp2.2\DigitalBookHistoryLoader.deps.json
-C:\Users\Josh Wygle\source\repos\DigitalBookHistory\DigitalBookHistoryLoader\DigitalBookHistoryLoader\bin\Debug\netcoreapp2.2\DigitalBookHistoryLoader.runtimeconfig.json
-C:\Users\Josh Wygle\source\repos\DigitalBookHistory\DigitalBookHistoryLoader\DigitalBookHistoryLoader\bin\Debug\netcoreapp2.2\DigitalBookHistoryLoader.runtimeconfig.dev.json
-C:\Users\Josh Wygle\source\repos\DigitalBookHistory\DigitalBookHistoryLoader\DigitalBookHistoryLoader\bin\Debug\netcoreapp2.2\DigitalBookHistoryLoader.dll
-C:\Users\Josh Wygle\source\repos\DigitalBookHistory\DigitalBookHistoryLoader\DigitalBookHistoryLoader\obj\Debug\netcoreapp2.2\DigitalBookHistoryLoader.csproj.CoreCompileInputs.cache
-C:\Users\Josh Wygle\source\repos\DigitalBookHistory\DigitalBookHistoryLoader\DigitalBookHistoryLoader\obj\Debug\netcoreapp2.2\DigitalBookHistoryLoader.AssemblyInfoInputs.cache
-C:\Users\Josh Wygle\source\repos\DigitalBookHistory\DigitalBookHistoryLoader\DigitalBookHistoryLoader\obj\Debug\netcoreapp2.2\DigitalBookHistoryLoader.AssemblyInfo.cs
-C:\Users\Josh Wygle\source\repos\DigitalBookHistory\DigitalBookHistoryLoader\DigitalBookHistoryLoader\bin\Debug\netcoreapp2.2\DigitalBookHistoryLoader.pdb
-C:\Users\Josh Wygle\source\repos\DigitalBookHistory\DigitalBookHistoryLoader\DigitalBookHistoryLoader\obj\Debug\netcoreapp2.2\DigitalBookHistoryLoader.dll
-C:\Users\Josh Wygle\source\repos\DigitalBookHistory\DigitalBookHistoryLoader\DigitalBookHistoryLoader\obj\Debug\netcoreapp2.2\DigitalBookHistoryLoader.pdb
-C:\Users\Josh Wygle\source\repos\DigitalBookHistory\DigitalBookHistoryLoader\DigitalBookHistoryLoader\obj\Debug\netcoreapp2.2\DigitalBookHistoryLoader.csprojAssemblyReference.cache
+C:/Users/Josh Wygle/source/repos/DigitalBookHistory/DigitalBookHistoryLoader/DigitalBookHistoryLoader/bin/Debug/netcoreapp2.2/DigitalBookHistoryLoader.deps.json
+C:/Users/Josh Wygle/source/repos/DigitalBookHistory/DigitalBookHistoryLoader/DigitalBookHistoryLoader/bin/Debug/netcoreapp2.2/DigitalBookHistoryLoader.runtimeconfig.json
+C:/Users/Josh Wygle/source/repos/DigitalBookHistory/DigitalBookHistoryLoader/DigitalBookHistoryLoader/bin/Debug/netcoreapp2.2/DigitalBookHistoryLoader.runtimeconfig.dev.json
+C:/Users/Josh Wygle/source/repos/DigitalBookHistory/DigitalBookHistoryLoader/DigitalBookHistoryLoader/bin/Debug/netcoreapp2.2/DigitalBookHistoryLoader.dll
+C:/Users/Josh Wygle/source/repos/DigitalBookHistory/DigitalBookHistoryLoader/DigitalBookHistoryLoader/obj/Debug/netcoreapp2.2/DigitalBookHistoryLoader.csproj.CoreCompileInputs.cache
+C:/Users/Josh Wygle/source/repos/DigitalBookHistory/DigitalBookHistoryLoader/DigitalBookHistoryLoader/obj/Debug/netcoreapp2.2/DigitalBookHistoryLoader.AssemblyInfoInputs.cache
+C:/Users/Josh Wygle/source/repos/DigitalBookHistory/DigitalBookHistoryLoader/DigitalBookHistoryLoader/obj/Debug/netcoreapp2.2/DigitalBookHistoryLoader.AssemblyInfo.cs
+C:/Users/Josh Wygle/source/repos/DigitalBookHistory/DigitalBookHistoryLoader/DigitalBookHistoryLoader/bin/Debug/netcoreapp2.2/DigitalBookHistoryLoader.pdb
+C:/Users/Josh Wygle/source/repos/DigitalBookHistory/DigitalBookHistoryLoader/DigitalBookHistoryLoader/obj/Debug/netcoreapp2.2/DigitalBookHistoryLoader.dll
+C:/Users/Josh Wygle/source/repos/DigitalBookHistory/DigitalBookHistoryLoader/DigitalBookHistoryLoader/obj/Debug/netcoreapp2.2/DigitalBookHistoryLoader.pdb
+C:/Users/Josh Wygle/source/repos/DigitalBookHistory/DigitalBookHistoryLoader/DigitalBookHistoryLoader/obj/Debug/netcoreapp2.2/DigitalBookHistoryLoader.csprojAssemblyReference.cache
+/Users/joshwygle/workspace/Personal_Projects/DigitalBookHistory/DigitalBookHistoryLoader/DigitalBookHistoryLoader/bin/Debug/netcoreapp2.2/DigitalBookHistoryLoader.deps.json
+/Users/joshwygle/workspace/Personal_Projects/DigitalBookHistory/DigitalBookHistoryLoader/DigitalBookHistoryLoader/bin/Debug/netcoreapp2.2/DigitalBookHistoryLoader.runtimeconfig.json
+/Users/joshwygle/workspace/Personal_Projects/DigitalBookHistory/DigitalBookHistoryLoader/DigitalBookHistoryLoader/bin/Debug/netcoreapp2.2/DigitalBookHistoryLoader.runtimeconfig.dev.json
+/Users/joshwygle/workspace/Personal_Projects/DigitalBookHistory/DigitalBookHistoryLoader/DigitalBookHistoryLoader/bin/Debug/netcoreapp2.2/DigitalBookHistoryLoader.dll
+/Users/joshwygle/workspace/Personal_Projects/DigitalBookHistory/DigitalBookHistoryLoader/DigitalBookHistoryLoader/bin/Debug/netcoreapp2.2/DigitalBookHistoryLoader.pdb
+/Users/joshwygle/workspace/Personal_Projects/DigitalBookHistory/DigitalBookHistoryLoader/DigitalBookHistoryLoader/obj/Debug/netcoreapp2.2/DigitalBookHistoryLoader.csprojAssemblyReference.cache
+/Users/joshwygle/workspace/Personal_Projects/DigitalBookHistory/DigitalBookHistoryLoader/DigitalBookHistoryLoader/obj/Debug/netcoreapp2.2/DigitalBookHistoryLoader.csproj.CoreCompileInputs.cache
+/Users/joshwygle/workspace/Personal_Projects/DigitalBookHistory/DigitalBookHistoryLoader/DigitalBookHistoryLoader/obj/Debug/netcoreapp2.2/DigitalBookHistoryLoader.AssemblyInfoInputs.cache
+/Users/joshwygle/workspace/Personal_Projects/DigitalBookHistory/DigitalBookHistoryLoader/DigitalBookHistoryLoader/obj/Debug/netcoreapp2.2/DigitalBookHistoryLoader.AssemblyInfo.cs
+/Users/joshwygle/workspace/Personal_Projects/DigitalBookHistory/DigitalBookHistoryLoader/DigitalBookHistoryLoader/obj/Debug/netcoreapp2.2/DigitalBookHistoryLoader.dll
+/Users/joshwygle/workspace/Personal_Projects/DigitalBookHistory/DigitalBookHistoryLoader/DigitalBookHistoryLoader/obj/Debug/netcoreapp2.2/DigitalBookHistoryLoader.pdb
