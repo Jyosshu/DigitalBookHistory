@@ -94,7 +94,11 @@ namespace DigitalBookHistoryLoader.repositories
                                 {
                                     var insertedRow = connection.Execute("INSERT INTO artist (artistId, artistName) VALUES (@ArtistId, @ArtistName)", new { ArtistId = nextArtistId, item.ArtistName }, transaction: transaction);
                                     if (insertedRow != 1) transaction.Rollback();
-                                    else nextArtistId++;
+                                    else
+                                    {
+                                        artistUniqueCheck.Add(key: nextArtistId, value: item.ArtistName);
+                                        nextArtistId++;
+                                    }
                                 }
 
                                 if (!artKeyUniqueCheck.ContainsKey(item.TitleId))
