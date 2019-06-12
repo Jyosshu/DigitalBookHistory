@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 namespace DigitalBookHistoryLoader.models
 {
     public class DigitalItem

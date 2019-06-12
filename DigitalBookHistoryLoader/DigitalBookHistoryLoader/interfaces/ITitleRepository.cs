@@ -4,7 +4,7 @@ using DigitalBookHistoryLoader.models;
 
 namespace DigitalBookHistoryLoader.interfaces
 {
-    public interface IRemoteTitleRepository
+    public interface ITitleRepository
     {
         List<DigitalItem> GetHooplaHistory(string fileToRead);
         bool LoadDigitalItemsToDb(List<DigitalItem> digitalItems);

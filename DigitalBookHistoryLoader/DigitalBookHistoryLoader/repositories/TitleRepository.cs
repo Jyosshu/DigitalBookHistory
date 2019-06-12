@@ -15,7 +15,7 @@ using System.Data.Common;
 
 namespace DigitalBookHistoryLoader.repositories
 {
-    public class RemoteTitleRepository : IRemoteTitleRepository
+    public class TitleRepository : ITitleRepository
     {
         private static HttpClient HttpClient = new HttpClient();
         private readonly bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
@@ -78,11 +78,8 @@ namespace DigitalBookHistoryLoader.repositories
                     if (result >= 0) nextDigitalItemId = result + 1;
                     if (artistResult >= 0) nextArtistId = artistResult + 1;
 
-                    var results = connection.Query("SELECT titleId, artKey FROM digital_item").ToDictionary(row => (long)row.titleId, row => (string)row.artKey);
-                    var artistResults = connection.Query("SELECT artistId, artistName FROM artist").ToDictionary(row => (int)row.artistId, row => (string)row.artistName);
-
-                    artKeyUniqueCheck = results;
-                    artistUniqueCheck = artistResults;
+                    artKeyUniqueCheck = GetExistingDigitalItemRecordsFromDb();
+                    artistUniqueCheck = GetExistingArtistRecordsFromDb();
 
                     using (IDbTransaction transaction = connection.BeginTransaction())
                     {
@@ -168,6 +165,46 @@ namespace DigitalBookHistoryLoader.repositories
             }
 
             return results;
+        }
+
+        private Dictionary<long, string> GetExistingDigitalItemRecordsFromDb()
+        {
+            Dictionary<long, string> keyValuePairs = new Dictionary<long, string>();
+
+            using (var connection = OpenConnection())
+            {
+                try
+                {
+                    var results = connection.Query("SELECT titleId, artKey FROM digital_item").ToDictionary(row => (long)row.titleId, row => (string)row.artKey);
+                    keyValuePairs = results;
+                }
+                catch (DbException e)
+                {
+                    Console.WriteLine($"Exception Caught!  Message : {e.Message}");
+                }
+            }
+
+            return keyValuePairs;
+        }
+
+        private Dictionary<int, string> GetExistingArtistRecordsFromDb()
+        {
+            Dictionary<int, string> keyValuePairs = new Dictionary<int, string>();
+
+            using (var connection = OpenConnection())
+            {
+                try
+                {
+                    var results = connection.Query("SELECT artistId, artistName FROM artist").ToDictionary(row => (int)row.artistId, row => (string)row.artistName);
+                    keyValuePairs = results;
+                }
+                catch (DbException e)
+                {
+                    Console.WriteLine($"Exception Caught!  Message : {e.Message}");
+                }
+            }
+
+            return keyValuePairs;
         }
     }
 }
