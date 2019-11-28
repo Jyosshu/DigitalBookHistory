@@ -4,34 +4,32 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using DigitalBookHistoryAPI.Interface;
 
 namespace DigitalBookHistoryAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]/[action]")]
     [ApiController]
     public class HomeController : ControllerBase
     {
         // TODO: Add private readonly interface
+        private readonly IBookRepository _bookRepository;
 
-        public HomeController()
+        public HomeController(IBookRepository bookRepository)
         {
-            // TODO: add interface
+            _bookRepository = bookRepository;
         }
 
         // GET: api/Home
         [HttpGet]
-        public IEnumerable<string> Get()
-        {
-            return new string[] { "value1", "value2" };
-        }
+        //[Route("/[controller]/[action]")]
+        public IActionResult GetBooks() => Ok(_bookRepository.GetBooks());
+
 
         // GET: api/Home/5
         [HttpGet] // [HttpGet("{id}", Name = "Get")]
         [Route("/[controller]/[action]/{id}")]
-        public string Get(int id)
-        {
-            return "value";
-        }
+        public IActionResult GetBookById(int id) => Ok(_bookRepository.GetBookById(id));
 
         //// POST: api/Home
         //[HttpPost]

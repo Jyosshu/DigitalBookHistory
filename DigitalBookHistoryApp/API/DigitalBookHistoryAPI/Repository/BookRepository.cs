@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using Microsoft.Extensions.Options;
@@ -23,25 +24,60 @@ namespace DigitalBookHistoryAPI.Repository
             List<DigitalBook> bookList;
 
             using (var connection = new SqlConnection(_appSettings.ConnectionStrings.DefaultConnection))
-            {
-                string query = "";
-                bookList = connection.Query<DigitalBook>(query).AsList();
+            {                
+                bookList = connection.Query<DigitalBook, Image, Kind, DigitalBook>(getBooksQuery + " ORDER BY di.id", 
+                    map: (digitalBook, image, kind) =>
+                    {
+                        digitalBook.Image = image;
+                        digitalBook.Kind = kind;
+                        return digitalBook;
+                    }
+                    ).AsList();
             }
 
             return bookList;
         }
 
-        public DigitalBook GetBook(int Id)
+        public DigitalBook GetBookById(int bookId)
         {
             DigitalBook book;
 
             using (var connection = new SqlConnection(_appSettings.ConnectionStrings.DefaultConnection))
             {
-                string query = "";
-                book = connection.QueryFirstOrDefault(query);
+                var result = connection.Query<DigitalBook, Image, Kind, DigitalBook>($"{getBooksQuery} WHERE di.id = @bookId",
+                    map: (digitalBook, image, kind) =>
+                    {
+                        digitalBook.Image = image;
+                        digitalBook.Kind = kind;
+                        return digitalBook;
+                    }, new { BookId = bookId }).AsList();
+
+                if (result.Count > 0) book = (DigitalBook)result[0];
+                else book = null;
             }
 
             return book;
         }
+
+        private static readonly string getBooksQuery = @"SELECT di.id
+, di.titleId
+, di.title
+, di.kindId
+, di.artistName
+, di.artKey
+, di.borrowed
+, di.borrowed
+, i.id
+, i.altText
+, i.artKey
+, i.remoteUrl
+, i.localUrl
+, ki.id
+, ki.name
+, ki.singular
+, ki.plural
+FROM digital_item di
+INNER JOIN images i ON i.artKey = di.artKey
+INNER JOIN kind ki ON ki.id = di.kindId";
     }
 }

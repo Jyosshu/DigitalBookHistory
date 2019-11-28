@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-// TODO add using for interface and repository
+using DigitalBookHistoryAPI.Interface;
+using DigitalBookHistoryAPI.Repository;
 
 namespace DigitalBookHistoryAPI
 {
@@ -7,8 +8,7 @@ namespace DigitalBookHistoryAPI
     {
         public static void RegisterDependencies(IServiceCollection services)
         {
-            // TODO: add injections
-            // services.AddTransient<IPostRepository, PostsRepository>();
+            services.AddTransient<IBookRepository, BookRepository>();
         }
     }
 }

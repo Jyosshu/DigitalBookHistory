@@ -3,9 +3,9 @@ using DigitalBookHistoryAPI.Models;
 
 namespace DigitalBookHistoryAPI.Interface
 {
-    interface IBookRepository
+    public interface IBookRepository
     {
         List<DigitalBook> GetBooks();
-        DigitalBook GetBook(int bookId);
+        DigitalBook GetBookById(int bookId);
     }
 }
