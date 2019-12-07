@@ -12,4 +12,10 @@
     <PackageReference Include="System.Data.SqlClient" Version="4.7.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="Utilities">
+      <HintPath>..\..\..\Utilities\Utilities\bin\Debug\netcoreapp2.2\Utilities.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

@@ -9,5 +9,10 @@ namespace DigitalBookHistoryLoader
 
             public static string PostgresConnection = "Server=localhost;Port=5432;Database=digital_book_history;User Id=digital_book_history_appuser;Password=AAtjSUbLTRJVbu95LH3T";
         }
+
+        public static string RemoteImageUrl
+        {
+            get => "https://d2snwnmzyr8jue.cloudfront.net/";
+        }
     }
 }
