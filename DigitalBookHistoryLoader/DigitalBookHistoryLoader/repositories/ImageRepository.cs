@@ -7,7 +7,7 @@ using System.Data;
 using Npgsql;
 using System.Linq;
 using System.Data.Common;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Runtime.InteropServices;
 
 namespace DigitalBookHistoryLoader.repositories
