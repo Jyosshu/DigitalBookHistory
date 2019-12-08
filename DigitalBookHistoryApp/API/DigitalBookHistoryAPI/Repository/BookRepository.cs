@@ -52,8 +52,7 @@ namespace DigitalBookHistoryAPI.Repository
                         return digitalBook;
                     }, new { BookId = bookId }).AsList();
 
-                if (result.Count > 0) book = (DigitalBook)result[0];
-                else book = null;
+                book = result.Count > 0 ? result[0] : null;
             }
 
             return book;

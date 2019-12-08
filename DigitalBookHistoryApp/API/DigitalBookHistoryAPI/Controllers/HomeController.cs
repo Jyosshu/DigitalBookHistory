@@ -12,7 +12,6 @@ namespace DigitalBookHistoryAPI.Controllers
     [ApiController]
     public class HomeController : ControllerBase
     {
-        // TODO: Add private readonly interface
         private readonly IBookRepository _bookRepository;
 
         public HomeController(IBookRepository bookRepository)
