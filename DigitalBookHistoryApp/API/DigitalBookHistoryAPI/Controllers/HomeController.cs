@@ -30,6 +30,10 @@ namespace DigitalBookHistoryAPI.Controllers
         [Route("/[controller]/[action]/{id}")]
         public IActionResult GetBookById(int id) => Ok(_bookRepository.GetBookById(id));
 
+        [HttpGet]
+        [Route("/[controller]/[action]/{authorName}")]
+        public IActionResult GetBooksByAuthor(string authorName) => Ok(_bookRepository.GetBooksByAuthor(authorName));
+
         //// POST: api/Home
         //[HttpPost]
         //public void Post([FromBody] string value)

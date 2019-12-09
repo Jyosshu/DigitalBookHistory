@@ -7,5 +7,6 @@ namespace DigitalBookHistoryAPI.Interface
     {
         List<DigitalBook> GetBooks();
         DigitalBook GetBookById(int bookId);
+        List<DigitalBook> GetBooksByAuthor(string authorName);
     }
 }

@@ -52,10 +52,30 @@ namespace DigitalBookHistoryAPI.Repository
                         return digitalBook;
                     }, new { BookId = bookId }).AsList();
 
-                book = result.Count > 0 ? result[0] : null;
+                book = result.Count > 0 ? result.FirstOrDefault() : null;
             }
 
             return book;
+        }
+
+        public List<DigitalBook> GetBooksByAuthor(string authorName)
+        {
+            // TODO: clean user input string
+            List<DigitalBook> results;
+            int inputLength = authorName.Length;
+
+            using (var connection = new SqlConnection(_appSettings.ConnectionStrings.DefaultConnection))
+            {
+                results = connection.Query<DigitalBook, Image, Kind, DigitalBook>($"{getBooksQuery} WHERE LEFT(di.artistName, @InputLength) = @ArtistName ORDER BY di.id",
+                    map: (digitalBook, image, kind) =>
+                    {
+                        digitalBook.Image = image;
+                        digitalBook.Kind = kind;
+                        return digitalBook;
+                    }, new { artistName = authorName, InputLength = inputLength }).AsList();
+            }
+
+            return results;
         }
 
         private static readonly string getBooksQuery = @"SELECT di.id
