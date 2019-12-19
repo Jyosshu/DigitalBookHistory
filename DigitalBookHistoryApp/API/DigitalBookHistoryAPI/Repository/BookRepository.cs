@@ -85,7 +85,7 @@ namespace DigitalBookHistoryAPI.Repository
 , di.artistName
 , di.artKey
 , di.borrowed
-, di.borrowed
+, di.returned
 , i.id
 , i.altText
 , i.artKey
