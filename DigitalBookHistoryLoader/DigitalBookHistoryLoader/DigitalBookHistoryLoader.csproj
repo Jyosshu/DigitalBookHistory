@@ -14,7 +14,8 @@
 
   <ItemGroup>
     <Reference Include="Utilities">
-      <HintPath>..\..\..\Utilities\Utilities\bin\Debug\netcoreapp2.2\Utilities.dll</HintPath>
+      <HintPath>..\..\..\Utilities\Utilities\bin\Release\netcoreapp2.2\Utilities.dll</HintPath>
+      <Private>true</Private>
     </Reference>
   </ItemGroup>
 

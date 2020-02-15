@@ -99,7 +99,9 @@ namespace DigitalBookHistoryLoader
                         }
                         else
                         {
-                            digitalItems = titleRepository.GetHooplaHistory(fileToRead);
+                            LoadDigitalBooks loadDigitalBooks = new LoadDigitalBooks();
+
+                            digitalItems = loadDigitalBooks.BuildDigitalItemsFromJson(fileToRead);
 
                             titleRepository.LoadDigitalItemsToDb(digitalItems);
                         }

@@ -20,7 +20,7 @@ namespace DigitalBookHistoryLoader.repositories
         private static HttpClient HttpClient = new HttpClient();
         private readonly bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
-        public IDbConnection OpenConnection()
+        private IDbConnection OpenConnection()
         {
             IDbConnection connection;
 
@@ -38,24 +38,24 @@ namespace DigitalBookHistoryLoader.repositories
             return connection;
         }
 
-        public List<DigitalItem> GetHooplaHistory(string fileToRead)
-        {
-            List<DigitalItem> digitalItems = new List<DigitalItem>();
+        //public List<DigitalItem> GetHooplaHistory(string fileToRead)
+        //{
+        //    List<DigitalItem> digitalItems = new List<DigitalItem>();
 
-            try
-            {
-                string results = GetHooplaHistoryJson(fileToRead);
-                digitalItems = JsonConvert.DeserializeObject<List<DigitalItem>>(results);
-            }
-            catch (AggregateException e)
-            {
-                Console.WriteLine($"Exception Caught!  Message : {e.Message}");
-            }
+        //    try
+        //    {
+        //        string results = GetHooplaHistoryJson(fileToRead);
+        //        digitalItems = JsonConvert.DeserializeObject<List<DigitalItem>>(results);
+        //    }
+        //    catch (AggregateException e)
+        //    {
+        //        Console.WriteLine($"Exception Caught!  Message : {e.Message}");
+        //    }
 
-            digitalItems.Reverse();
+        //    digitalItems.Reverse();
 
-            return digitalItems;
-        }
+        //    return digitalItems;
+        //}
 
         public bool LoadDigitalItemsToDb(List<DigitalItem> digitalItems)
         {
@@ -66,19 +66,19 @@ namespace DigitalBookHistoryLoader.repositories
                     Dictionary<long, string> artKeyUniqueCheck = new Dictionary<long, string>();
                     Dictionary<int, string> artistUniqueCheck = new Dictionary<int, string>();
 
-                    string query = @"INSERT INTO digital_item (id, titleId, title, kindId, artistName, demo, pa, edited, artKey, borrowed, returned, circId, fixedLayout, readAlong) ";
-                    string values = @"VALUES (@Id, @TitleId, @Title, @KindId, @ArtistName, @Demo, @Pa, @Edited, @ArtKey, @Borrowed, @Returned, @CircId, @FixedLayout, @ReadAlong);";
+                    string query = @"INSERT INTO digital_item (id, titleId, title, kindId, artistName, demo, pa, edited, artKey, circId, fixedLayout, readAlong) "; // borrowed, returned, 
+                    string values = @"VALUES (@Id, @TitleId, @Title, @KindId, @ArtistName, @Demo, @Pa, @Edited, @ArtKey, @CircId, @FixedLayout, @ReadAlong);"; //@Borrowed, @Returned, 
 
                     int nextDigitalItemId = 0;
                     int nextArtistId = 0;
 
-                    var result = connection.Execute("SELECT MAX(id) FROM digital_item");
-                    var artistResult = connection.Execute("SELECT MAX(artistId) FROM artist");
+                    int result = connection.Execute("SELECT MAX(id) FROM digital_item");
+                    int artistResult = connection.Execute("SELECT MAX(artistId) FROM artist");
 
                     if (result >= 0) nextDigitalItemId = result + 1;
                     if (artistResult >= 0) nextArtistId = artistResult + 1;
 
-                    artKeyUniqueCheck = GetExistingDigitalItemRecordsFromDb();
+                    artKeyUniqueCheck = GetExistingDigitalItemRecordsFromDb(); // TODO: Remove and check every for every digitalItem
                     artistUniqueCheck = GetExistingArtistRecordsFromDb();
 
                     using (IDbTransaction transaction = connection.BeginTransaction())
@@ -87,16 +87,22 @@ namespace DigitalBookHistoryLoader.repositories
                         {
                             foreach (DigitalItem item in digitalItems)
                             {
+                                // TODO: query database to see if digital_item, borrow and artist exists
+                                // TODO: artist and digital_item should be a 1:many relationship (at least as Hoopla is concerned.
+
                                 if (!artistUniqueCheck.ContainsValue(item.ArtistName))
                                 {
                                     var insertedRow = connection.Execute("INSERT INTO artist (artistId, artistName) VALUES (@ArtistId, @ArtistName)", new { ArtistId = nextArtistId, item.ArtistName }, transaction: transaction);
-                                    if (insertedRow != 1) transaction.Rollback();
-                                    else
+                                    if (insertedRow != 1)
                                     {
-                                        artistUniqueCheck.Add(key: nextArtistId, value: item.ArtistName);
-                                        nextArtistId++;
+                                        transaction.Rollback();
                                     }
+
+                                    artistUniqueCheck.Add(nextArtistId, item.ArtistName);
+                                    nextArtistId++;
                                 }
+
+                                var titleExists = connection.Query("SELECT titleId FROM digital_item WHERE titleId = @ItemTitleId").First();
 
                                 if (!artKeyUniqueCheck.ContainsKey(item.TitleId))
                                 {
@@ -112,21 +118,25 @@ namespace DigitalBookHistoryLoader.repositories
                                             PA = (item.PA == false) ? 0 : 1,
                                             Edited = (item.Edited == false) ? 0 : 1,
                                             item.ArtKey,
-                                            item.Borrowed,
-                                            item.Returned,
                                             item.CircId,
                                             FixedLayout = (item.FixedLayout == false) ? 0 : 1,
                                             ReadAlong = (item.ReadAlong == false) ? 0 : 1
                                         }, transaction);
 
-                                    if (insertedRow != 1) transaction.Rollback();
-
-                                    else nextDigitalItemId++;
-
-                                    if (!artKeyUniqueCheck.ContainsKey(item.TitleId))
+                                    if (insertedRow != 1)
                                     {
-                                        artKeyUniqueCheck.Add(item.TitleId, item.ArtKey);
+                                        transaction.Rollback();
                                     }
+
+                                    // TODO: Query to validate it doesn't exist?
+                                    insertedRow = connection.Execute("INSERT INTO borrows (titleId, borrowed, returned) VALUES(@Borrowed, @Returned)", new { item.Borrowed, item.Returned }, transaction);
+                                    if (insertedRow != 1)
+                                    {
+                                        transaction.Rollback();
+                                    }
+
+                                    artKeyUniqueCheck.Add(item.TitleId, item.ArtKey);
+                                    nextDigitalItemId++;
                                 }
                             }
 
@@ -148,24 +158,24 @@ namespace DigitalBookHistoryLoader.repositories
             }
         }
 
-        private string GetHooplaHistoryJson(string fileToRead)
-        {
-            string results = null;
+        //private string GetHooplaHistoryJson(string fileToRead)
+        //{
+        //    string results = null;
 
-            try
-            {                
-                using (var reader = new StreamReader(fileToRead))
-                {
-                    results = reader.ReadToEnd();
-                }
-            }
-            catch (IOException e)
-            {
-                Console.WriteLine($"Exception Caught!  Message : {e.Message}");
-            }
+        //    try
+        //    {                
+        //        using (var reader = new StreamReader(fileToRead))
+        //        {
+        //            results = reader.ReadToEnd();
+        //        }
+        //    }
+        //    catch (IOException e)
+        //    {
+        //        Console.WriteLine($"Exception Caught!  Message : {e.Message}");
+        //    }
 
-            return results;
-        }
+        //    return results;
+        //}
 
         private Dictionary<long, string> GetExistingDigitalItemRecordsFromDb()
         {

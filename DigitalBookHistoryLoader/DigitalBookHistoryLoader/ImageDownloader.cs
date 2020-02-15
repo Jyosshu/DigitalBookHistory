@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Threading.Tasks;
 using DigitalBookHistoryLoader.models;
 
 namespace DigitalBookHistoryLoader
@@ -25,7 +26,15 @@ namespace DigitalBookHistoryLoader
             }
         }
 
+        //public Task DownloadImageAsync(List<ImageFields> imageFieldsList)
+        //{
+        //    int successfulImages = 0;
+        //    int failedImages = 0;
+        //    List<ImageFields> failedImageList = new List<ImageFields>();
 
+
+        //    return $"";
+        //}
     }
 }
 

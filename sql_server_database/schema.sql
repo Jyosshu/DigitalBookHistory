@@ -4,7 +4,7 @@ BEGIN TRANSACTION;
 --ALTER TABLE digital_item DROP CONSTRAINT fk_digital_item_kind;
 --ALTER TABLE images DROP CONSTRAINT fk_image_digital_item;
 
-DROP TABLE IF EXISTS ratings, digital_item, images, kind, artist;
+DROP TABLE IF EXISTS ratings, digital_item, borrows, images, kind, artist;
 
 -- Artist table
 CREATE TABLE artist
@@ -35,12 +35,20 @@ CREATE TABLE digital_item
     pa BIT NULL,
     edited BIT NULL,    
     artKey VARCHAR(255) UNIQUE,
-    borrowed BIGINT NULL,
-    returned BIGINT NULL,
+    --borrowed BIGINT NULL,
+    --returned BIGINT NULL,
     circId BIGINT NULL,
     fixedLayout BIT NULL,
     readAlong BIT NULL,
     CONSTRAINT fk_digital_item_kind FOREIGN KEY (kindId) REFERENCES kind(id)
+);
+
+CREATE TABLE borrows
+(
+    id INTEGER IDENTITY,
+    titleId BIGINT NULL,
+    borrowed BIGINT NULL,
+    returned BIGINT NULL,
 );
 
 CREATE TABLE ratings

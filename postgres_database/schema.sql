@@ -30,13 +30,20 @@ CREATE TABLE digital_item
     pa BOOLEAN NULL,
     edited BOOLEAN NULL,    
     artKey VARCHAR(255) UNIQUE,
-    borrowed BIGINT NULL,
-    returned BIGINT NULL,
+    -- borrowed BIGINT NULL,
+    -- returned BIGINT NULL,
     circId BIGINT NULL,
     fixedLayout BOOLEAN NULL,
     readAlong BOOLEAN NULL,
     CONSTRAINT fk_digital_item_kind FOREIGN KEY (kindId) REFERENCES kind(id),
     CONSTRAINT fk_digital_item_artist FOREIGN KEY (artistName) REFERENCES artist(artistName)
+);
+
+CREATE TABLE borrows
+(
+    titleId BIGINT NULL,
+    borrowed BIGINT NULL,
+    returned BIGINT NULL,
 );
 
 CREATE TABLE ratings

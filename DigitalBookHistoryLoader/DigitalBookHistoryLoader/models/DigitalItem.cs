@@ -1,4 +1,5 @@
-﻿
+﻿using System.Collections.Generic;
+
 namespace DigitalBookHistoryLoader.models
 {
     public class DigitalItem
@@ -18,5 +19,7 @@ namespace DigitalBookHistoryLoader.models
         public bool Children { get; set; }
         public bool FixedLayout { get; set; }
         public bool ReadAlong { get; set; }
+
+        List<Borrow> Borrows { get; set; }
     }
 }
