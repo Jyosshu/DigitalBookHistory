@@ -26,7 +26,7 @@ CREATE TABLE kind
 -- Book table
 CREATE TABLE digital_item
 (
-    id INTEGER PRIMARY KEY,
+    id INTEGER IDENTITY,
     titleId BIGINT NULL,
     title VARCHAR(255) NULL,
     kindId INTEGER NULL,

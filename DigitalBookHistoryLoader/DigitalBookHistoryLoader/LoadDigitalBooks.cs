@@ -10,26 +10,42 @@ namespace DigitalBookHistoryLoader
 {
     public class LoadDigitalBooks
     {
-        //string _fileToRead;
-        ITitleRepository titleRepository = new TitleRepository();
+        private List<DigitalItem> _digitalItems;
+        private TaskLog _taskLog;
+        public bool loadSuccess = false;
 
-        //public LoadDigitalBooks(string fileToRead)
-        //{
-        //    _fileToRead = fileToRead;
-        //}
+        private ITitleRepository _titleRepo = new TitleRepository();
 
-        public List<DigitalItem> BuildDigitalItemsFromJson(string jsonToRead)
+        public LoadDigitalBooks(TaskLog taskLog)
+        {
+            _taskLog = taskLog;
+        }
+
+        public void GetDigitalItemsFromString(string filename)
+        {
+            string jsonToRead = ReadJsonToString(filename);
+            _digitalItems = DeserializeDigitalItemsFromJson(jsonToRead);
+            
+
+            if (_digitalItems.Count > 0)
+            {
+                loadSuccess = _titleRepo.LoadDigitalItemsToDb(_digitalItems);
+            }
+        }
+
+        private List<DigitalItem> DeserializeDigitalItemsFromJson(string jsonToRead)
         {
             List<DigitalItem> digitalItems = new List<DigitalItem>();
 
             try
             {
-                string results = GetHooplaHistoryJson(jsonToRead);
+                string results = ReadJsonToString(jsonToRead);
                 digitalItems = JsonConvert.DeserializeObject<List<DigitalItem>>(results);
             }
             catch (AggregateException e)
             {
                 Console.WriteLine($"Exception Caught!  Message : {e.Message}");
+                _taskLog.AppendLine($"Exception Caught!  Message : {e.Message}");
             }
 
             digitalItems.Reverse();
@@ -37,7 +53,7 @@ namespace DigitalBookHistoryLoader
             return digitalItems;
         }
 
-        private string GetHooplaHistoryJson(string fileToRead)
+        private string ReadJsonToString(string fileToRead)
         {
             string results = null;
 
@@ -51,6 +67,7 @@ namespace DigitalBookHistoryLoader
             catch (IOException e)
             {
                 Console.WriteLine($"Exception Caught!  Message : {e.Message}");
+                _taskLog.AppendLine($"Exception Caught!  Message : {e.Message}");
             }
 
             return results;

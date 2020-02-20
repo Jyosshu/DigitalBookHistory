@@ -41,6 +41,7 @@ CREATE TABLE digital_item
 
 CREATE TABLE borrows
 (
+    id SERIAL PRIMARY KEY,
     titleId BIGINT NULL,
     borrowed BIGINT NULL,
     returned BIGINT NULL,

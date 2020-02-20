@@ -5,7 +5,7 @@ using DigitalBookHistoryLoader.models;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Utilities;
+//using Utilities;
 
 namespace DigitalBookHistoryLoader
 {
@@ -17,13 +17,12 @@ namespace DigitalBookHistoryLoader
             string saveLocation = null;
             string fileToRead = null;
             string remoteUrlBase = AppSettings.RemoteImageUrl;
+            TaskLog taskLog = new TaskLog(AppSettings.LogfileFullNameAndPath);
             List<TitleFields> titleFieldsList;
             List<ImageFields> imageFieldsList = new List<ImageFields>();
             IImageRepository imageRepository = new ImageRepository();
             ITitleRepository titleRepository = new TitleRepository();
-            Utilities.Utilities.OutputDirectory = new DirectoryInfo($"{AppDomain.CurrentDomain.BaseDirectory}");
-
-
+            //Utilities.Utilities.OutputDirectory = new DirectoryInfo($"{AppDomain.CurrentDomain.BaseDirectory}");
 
             while (argsSuccess == false)
             {
@@ -89,8 +88,6 @@ namespace DigitalBookHistoryLoader
                 }
                 else
                 {
-                    List<DigitalItem> digitalItems;
-
                     try
                     {
                         if (!File.Exists(fileToRead))
@@ -99,16 +96,14 @@ namespace DigitalBookHistoryLoader
                         }
                         else
                         {
-                            LoadDigitalBooks loadDigitalBooks = new LoadDigitalBooks();
-
-                            digitalItems = loadDigitalBooks.BuildDigitalItemsFromJson(fileToRead);
-
-                            titleRepository.LoadDigitalItemsToDb(digitalItems);
+                            LoadDigitalBooks loadDigitalBooks = new LoadDigitalBooks(taskLog);
+                            loadDigitalBooks.GetDigitalItemsFromString(fileToRead);
                         }
                     }
                     catch (FileNotFoundException ex)
                     {
                         Console.WriteLine($"There was an error accessing {fileToRead}.  {ex.Message}. {Environment.NewLine}Press q or x to exit.");
+                        taskLog.AppendLine($"There was an error accessing {fileToRead}.  {ex.Message}");
                         var input = Console.ReadKey();
 
                         if (input.ToString().ToUpper() == "Q" || input.ToString().ToUpper() == "X")
@@ -119,6 +114,7 @@ namespace DigitalBookHistoryLoader
                     catch (Exception ex)
                     {
                         Console.WriteLine($"There was an exception.  {ex.Message}");
+                        taskLog.AppendLine($"There was an exception.  {ex.Message}");
                     }
 
                     if (!Directory.Exists(saveLocation)) Directory.CreateDirectory(saveLocation);

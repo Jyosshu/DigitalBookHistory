@@ -20,6 +20,6 @@ namespace DigitalBookHistoryLoader.models
         public bool FixedLayout { get; set; }
         public bool ReadAlong { get; set; }
 
-        List<Borrow> Borrows { get; set; }
+        //List<Borrow> Borrows { get; set; } // This property is not relevant in the loading process.  It will be utilized when accessing the data.
     }
 }

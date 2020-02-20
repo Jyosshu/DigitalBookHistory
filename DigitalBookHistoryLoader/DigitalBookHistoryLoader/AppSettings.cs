@@ -1,4 +1,5 @@
-﻿
+﻿using System.IO;
+
 namespace DigitalBookHistoryLoader
 {
     public static class AppSettings
@@ -13,6 +14,11 @@ namespace DigitalBookHistoryLoader
         public static string RemoteImageUrl
         {
             get => "https://d2snwnmzyr8jue.cloudfront.net/";
+        }
+
+        public static string LogfileFullNameAndPath
+        {
+            get => $"{Directory.GetCurrentDirectory()}\\DigitalHistoryLog.txt";
         }
     }
 }

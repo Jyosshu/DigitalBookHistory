@@ -9,8 +9,6 @@ using DigitalBookHistoryLoader.interfaces;
 using DigitalBookHistoryLoader.models;
 using Dapper;
 using System.Linq;
-using Newtonsoft.Json;
-using System.IO;
 using System.Data.Common;
 
 namespace DigitalBookHistoryLoader.repositories
@@ -38,48 +36,30 @@ namespace DigitalBookHistoryLoader.repositories
             return connection;
         }
 
-        //public List<DigitalItem> GetHooplaHistory(string fileToRead)
-        //{
-        //    List<DigitalItem> digitalItems = new List<DigitalItem>();
-
-        //    try
-        //    {
-        //        string results = GetHooplaHistoryJson(fileToRead);
-        //        digitalItems = JsonConvert.DeserializeObject<List<DigitalItem>>(results);
-        //    }
-        //    catch (AggregateException e)
-        //    {
-        //        Console.WriteLine($"Exception Caught!  Message : {e.Message}");
-        //    }
-
-        //    digitalItems.Reverse();
-
-        //    return digitalItems;
-        //}
-
         public bool LoadDigitalItemsToDb(List<DigitalItem> digitalItems)
         {
-            using (var connection = OpenConnection())
+            try
             {
-                try
+                using (var connection = OpenConnection())
                 {
+
                     Dictionary<long, string> artKeyUniqueCheck = new Dictionary<long, string>();
                     Dictionary<int, string> artistUniqueCheck = new Dictionary<int, string>();
 
-                    string query = @"INSERT INTO digital_item (id, titleId, title, kindId, artistName, demo, pa, edited, artKey, circId, fixedLayout, readAlong) "; // borrowed, returned, 
-                    string values = @"VALUES (@Id, @TitleId, @Title, @KindId, @ArtistName, @Demo, @Pa, @Edited, @ArtKey, @CircId, @FixedLayout, @ReadAlong);"; //@Borrowed, @Returned, 
+                    string query = @"INSERT INTO digital_item (titleId, title, kindId, artistName, demo, pa, edited, artKey, circId, fixedLayout, readAlong) "; // borrowed, returned, 
+                    string values = @"VALUES (@TitleId, @Title, @KindId, @ArtistName, @Demo, @Pa, @Edited, @ArtKey, @CircId, @FixedLayout, @ReadAlong);"; //@Borrowed, @Returned, 
 
-                    int nextDigitalItemId = 0;
+                    // TODO: change id to be Identity
+
                     int nextArtistId = 0;
 
-                    int result = connection.Execute("SELECT MAX(id) FROM digital_item");
                     int artistResult = connection.Execute("SELECT MAX(artistId) FROM artist");
 
-                    if (result >= 0) nextDigitalItemId = result + 1;
+
                     if (artistResult >= 0) nextArtistId = artistResult + 1;
 
-                    artKeyUniqueCheck = GetExistingDigitalItemRecordsFromDb(); // TODO: Remove and check every for every digitalItem
-                    artistUniqueCheck = GetExistingArtistRecordsFromDb();
+                    artKeyUniqueCheck = GetExistingDigitalItemRows(); // TODO: Remove and check every for every digitalItem
+                    artistUniqueCheck = GetExistingArtistRows();
 
                     using (IDbTransaction transaction = connection.BeginTransaction())
                     {
@@ -88,16 +68,19 @@ namespace DigitalBookHistoryLoader.repositories
                             foreach (DigitalItem item in digitalItems)
                             {
                                 // TODO: query database to see if digital_item, borrow and artist exists
-                                // TODO: artist and digital_item should be a 1:many relationship (at least as Hoopla is concerned.
+                                // TODO: artist and digital_item should be a 1:many relationship (at least as Hoopla's history is concerned.  Their detailed view shows all authors and artists involved.
 
                                 if (!artistUniqueCheck.ContainsValue(item.ArtistName))
                                 {
-                                    var insertedRow = connection.Execute("INSERT INTO artist (artistId, artistName) VALUES (@ArtistId, @ArtistName)", new { ArtistId = nextArtistId, item.ArtistName }, transaction: transaction);
-                                    if (insertedRow != 1)
+                                    int insertedRowId = 0;
+
+                                    insertedRowId = connection.Execute("INSERT INTO artist (artistId, artistName) OUTPUT artistId VALUES (@ArtistId, @ArtistName)", new { ArtistId = nextArtistId, item.ArtistName }, transaction: transaction);
+                                    if (insertedRowId != 1)
                                     {
                                         transaction.Rollback();
                                     }
 
+                                    // TODO: Change nextArtistId to insertedRowId after testing INSERT OUTPUT statement
                                     artistUniqueCheck.Add(nextArtistId, item.ArtistName);
                                     nextArtistId++;
                                 }
@@ -109,7 +92,6 @@ namespace DigitalBookHistoryLoader.repositories
                                     var insertedRow = connection.Execute(query + values,
                                         new
                                         {
-                                            Id = nextDigitalItemId,
                                             item.TitleId,
                                             item.Title,
                                             item.KindId,
@@ -136,7 +118,6 @@ namespace DigitalBookHistoryLoader.repositories
                                     }
 
                                     artKeyUniqueCheck.Add(item.TitleId, item.ArtKey);
-                                    nextDigitalItemId++;
                                 }
                             }
 
@@ -149,35 +130,17 @@ namespace DigitalBookHistoryLoader.repositories
                         }
                     }
                     return true;
+
                 }
-                catch (DbException e)
-                {                    
-                    Console.WriteLine($"Exception Caught!  Message : {e.Message}");
-                    return false;
-                }            
+            }
+            catch (DbException e)
+            {
+                Console.WriteLine($"Exception Caught!  Message : {e.Message}");
+                return false;
             }
         }
 
-        //private string GetHooplaHistoryJson(string fileToRead)
-        //{
-        //    string results = null;
-
-        //    try
-        //    {                
-        //        using (var reader = new StreamReader(fileToRead))
-        //        {
-        //            results = reader.ReadToEnd();
-        //        }
-        //    }
-        //    catch (IOException e)
-        //    {
-        //        Console.WriteLine($"Exception Caught!  Message : {e.Message}");
-        //    }
-
-        //    return results;
-        //}
-
-        private Dictionary<long, string> GetExistingDigitalItemRecordsFromDb()
+        private Dictionary<long, string> GetExistingDigitalItemRows()
         {
             Dictionary<long, string> keyValuePairs = new Dictionary<long, string>();
 
@@ -197,7 +160,7 @@ namespace DigitalBookHistoryLoader.repositories
             return keyValuePairs;
         }
 
-        private Dictionary<int, string> GetExistingArtistRecordsFromDb()
+        private Dictionary<int, string> GetExistingArtistRows()
         {
             Dictionary<int, string> keyValuePairs = new Dictionary<int, string>();
 
