@@ -17,6 +17,7 @@ namespace DigitalBookHistoryLoader.repositories
     {
         private static HttpClient HttpClient = new HttpClient();
         private readonly bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+        private List<Borrow> borrowsInDb;
 
         private IDbConnection OpenConnection()
         {
@@ -34,6 +35,49 @@ namespace DigitalBookHistoryLoader.repositories
             connection.Open();
 
             return connection;
+        }
+
+        private List<Borrow> GetExistingBorrows()
+        {
+            List<Borrow> results = null;
+
+            try
+            {
+                using (var connection = OpenConnection())
+                {
+                    string borrowSelectQuery = ""; // TODO: Create query that returns each titleID, borrowed and returned date.
+
+                    results = connection.Query<Borrow>(borrowSelectQuery).ToList();
+                }
+            }
+            catch (SqlException se)
+            {
+                ErrorOutput(se.Message, se.InnerException.ToString());
+            }
+
+            return results;
+        }
+
+        private Tuple<bool, bool> BorrowExists(Borrow borrowToCheck)
+        {
+            bool bTitleExists = false;
+            bool bBorrowExists = false;
+
+            if (borrowsInDb.Count > 0)
+            {
+                foreach (Borrow b in borrowsInDb)
+                {
+                    if (borrowToCheck.TitleId == b.TitleId)
+                    {
+                        bTitleExists = true;
+
+                        if (bTitleExists && b.Borrowed == borrowToCheck.Borrowed)
+                            bBorrowExists = true;
+                    }
+                }
+            }
+
+            return new Tuple<bool, bool>(bTitleExists, bBorrowExists);
         }
 
         public bool LoadDigitalItemsToDb(List<DigitalItem> digitalItems)
@@ -69,12 +113,26 @@ namespace DigitalBookHistoryLoader.repositories
                             {
                                 // TODO: query database to see if digital_item, borrow and artist exists
                                 // TODO: artist and digital_item should be a 1:many relationship (at least as Hoopla's history is concerned.  Their detailed view shows all authors and artists involved.
+                                Tuple<bool, bool> borrowExists = BorrowExists(new Borrow { TitleId = item.TitleId, Borrowed = item.Borrowed, Returned = item.Returned });
 
+                                if (borrowExists.Item1)
+                                {
+                                    if (borrowExists.Item2)
+                                        continue;
+                                    else
+                                    {
+                                        // TODO: Load borrow for existing titleID
+                                    }
+                                }
+                                else
+                                {
+                                    // TODO: Load title and borrow for new item
+                                }
+
+                                // TODO: refactor the unique artist check
                                 if (!artistUniqueCheck.ContainsValue(item.ArtistName))
                                 {
-                                    int insertedRowId = 0;
-
-                                    insertedRowId = connection.Execute("INSERT INTO artist (artistId, artistName) OUTPUT artistId VALUES (@ArtistId, @ArtistName)", new { ArtistId = nextArtistId, item.ArtistName }, transaction: transaction);
+                                    int insertedRowId = connection.Execute("INSERT INTO artist (artistId, artistName) OUTPUT artistId VALUES (@ArtistId, @ArtistName)", new { ArtistId = nextArtistId, item.ArtistName }, transaction: transaction);
                                     if (insertedRowId != 1)
                                     {
                                         transaction.Rollback();
@@ -85,7 +143,7 @@ namespace DigitalBookHistoryLoader.repositories
                                     nextArtistId++;
                                 }
 
-                                var titleExists = connection.Query("SELECT titleId FROM digital_item WHERE titleId = @ItemTitleId").First();
+                                //var titleExists = connection.Query("SELECT titleId FROM digital_item WHERE titleId = @ItemTitleId").First();
 
                                 if (!artKeyUniqueCheck.ContainsKey(item.TitleId))
                                 {
@@ -126,7 +184,7 @@ namespace DigitalBookHistoryLoader.repositories
                         catch (DbException e)
                         {
                             transaction.Rollback();
-                            Console.WriteLine($"Exception Caught!  Message : {e.Message}");
+                            ErrorOutput(e.Message, e.InnerException.ToString());
                         }
                     }
                     return true;
@@ -135,7 +193,7 @@ namespace DigitalBookHistoryLoader.repositories
             }
             catch (DbException e)
             {
-                Console.WriteLine($"Exception Caught!  Message : {e.Message}");
+                ErrorOutput(e.Message, e.InnerException.ToString());
                 return false;
             }
         }
@@ -153,7 +211,7 @@ namespace DigitalBookHistoryLoader.repositories
                 }
                 catch (DbException e)
                 {
-                    Console.WriteLine($"Exception Caught!  Message : {e.Message}");
+                    ErrorOutput(e.Message, e.InnerException.ToString());
                 }
             }
 
@@ -173,11 +231,17 @@ namespace DigitalBookHistoryLoader.repositories
                 }
                 catch (DbException e)
                 {
-                    Console.WriteLine($"Exception Caught!  Message : {e.Message}");
+                    ErrorOutput(e.Message, e.InnerException.ToString());
                 }
             }
 
             return keyValuePairs;
+        }
+
+        private void ErrorOutput(string message, string innerException)
+        {
+            Console.WriteLine("An exception was caught!  " + message + Environment.NewLine + innerException + Environment.NewLine);
+            // TODO: add log
         }
     }
 }
