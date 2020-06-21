@@ -36,7 +36,7 @@ namespace DigitalBookHistoryLoader.repositories
             return connection;
         }
 
-        public bool LoadDigitalItemsToDb(List<DigitalItem> digitalItems)
+        public bool LoadDigitalItemsToDb(List<DigitalItem> digitalItems, TaskLog taskLog)
         {
             try
             {
@@ -51,15 +51,15 @@ namespace DigitalBookHistoryLoader.repositories
 
                     // TODO: change id to be Identity
 
-                    int nextArtistId = 0;
+                    //int nextArtistId = 0;
 
-                    int artistResult = connection.Execute("SELECT MAX(artistId) FROM artist");
+                    //int artistResult = connection.Execute("SELECT MAX(artistId) FROM artist");
 
 
-                    if (artistResult >= 0) nextArtistId = artistResult + 1;
+                    //if (artistResult >= 0) nextArtistId = artistResult + 1;
 
-                    artKeyUniqueCheck = GetExistingDigitalItemRows(); // TODO: Remove and check every for every digitalItem
-                    artistUniqueCheck = GetExistingArtistRows();
+                    artKeyUniqueCheck = GetExistingDigitalItemRows(taskLog); // TODO: Remove and check every for every digitalItem
+                    artistUniqueCheck = GetExistingArtistRows(taskLog);
 
                     using (IDbTransaction transaction = connection.BeginTransaction())
                     {
@@ -68,24 +68,7 @@ namespace DigitalBookHistoryLoader.repositories
                             foreach (DigitalItem item in digitalItems)
                             {
                                 // TODO: query database to see if digital_item, borrow and artist exists
-                                // TODO: artist and digital_item should be a 1:many relationship (at least as Hoopla's history is concerned.  Their detailed view shows all authors and artists involved.
-
-                                if (!artistUniqueCheck.ContainsValue(item.ArtistName))
-                                {
-                                    int insertedRowId = 0;
-
-                                    insertedRowId = connection.Execute("INSERT INTO artist (artistId, artistName) OUTPUT artistId VALUES (@ArtistId, @ArtistName)", new { ArtistId = nextArtistId, item.ArtistName }, transaction: transaction);
-                                    if (insertedRowId != 1)
-                                    {
-                                        transaction.Rollback();
-                                    }
-
-                                    // TODO: Change nextArtistId to insertedRowId after testing INSERT OUTPUT statement
-                                    artistUniqueCheck.Add(nextArtistId, item.ArtistName);
-                                    nextArtistId++;
-                                }
-
-                                var titleExists = connection.Query("SELECT titleId FROM digital_item WHERE titleId = @ItemTitleId").First();
+                                //var titleExists = connection.Query("SELECT titleId FROM digital_item WHERE titleId = @TitleId", new { item.TitleId }).First();
 
                                 if (!artKeyUniqueCheck.ContainsKey(item.TitleId))
                                 {
@@ -110,14 +93,37 @@ namespace DigitalBookHistoryLoader.repositories
                                         transaction.Rollback();
                                     }
 
-                                    // TODO: Query to validate it doesn't exist?
-                                    insertedRow = connection.Execute("INSERT INTO borrows (titleId, borrowed, returned) VALUES(@Borrowed, @Returned)", new { item.Borrowed, item.Returned }, transaction);
-                                    if (insertedRow != 1)
+                                    artKeyUniqueCheck.Add(item.TitleId, item.ArtKey);
+                                }
+
+                                // TODO: artist and digital_item should be a 1:many relationship (at least as Hoopla's history is concerned.  Their detailed view shows all authors and artists involved.
+
+                                if (!artistUniqueCheck.ContainsValue(item.ArtistName))
+                                {
+                                    int insertedRowId = 0;
+
+                                    insertedRowId = connection.Execute("INSERT INTO artist (artistName) OUTPUT artistId VALUES (@ArtistName)", new { item.ArtistName }, transaction: transaction);
+                                    if (insertedRowId < 1)
                                     {
                                         transaction.Rollback();
                                     }
 
-                                    artKeyUniqueCheck.Add(item.TitleId, item.ArtKey);
+                                    // TODO: Change nextArtistId to insertedRowId after testing INSERT OUTPUT statement
+                                    artistUniqueCheck.Add(insertedRowId, item.ArtistName);
+                                    //nextArtistId++;
+                                }
+
+
+                                // TODO: Query to validate it doesn't exist?
+                                var barrowExist = connection.Query("SELECT * FROM borrows WHERE titleId = @TitleId", new { item.TitleId }, transaction);
+
+                                if (!barrowExist.Contains(item.Borrowed))
+                                {
+                                    var insertedRow = connection.Execute("INSERT INTO borrows (titleId, borrowed, returned) VALUES(@Borrowed, @Returned)", new { item.TitleId, item.Borrowed, item.Returned }, transaction);
+                                    if (insertedRow != 1)
+                                    {
+                                        transaction.Rollback();
+                                    }
                                 }
                             }
 
@@ -127,6 +133,7 @@ namespace DigitalBookHistoryLoader.repositories
                         {
                             transaction.Rollback();
                             Console.WriteLine($"Exception Caught!  Message : {e.Message}");
+                            taskLog.AppendLine($"Exception Caught!  Message : {e.Message}");
                         }
                     }
                     return true;
@@ -136,11 +143,16 @@ namespace DigitalBookHistoryLoader.repositories
             catch (DbException e)
             {
                 Console.WriteLine($"Exception Caught!  Message : {e.Message}");
+                taskLog.AppendLine($"Exception Caught!  Message : {e.Message}");
                 return false;
+            }
+            finally
+            {
+                taskLog.Close();
             }
         }
 
-        private Dictionary<long, string> GetExistingDigitalItemRows()
+        private Dictionary<long, string> GetExistingDigitalItemRows(TaskLog taskLog)
         {
             Dictionary<long, string> keyValuePairs = new Dictionary<long, string>();
 
@@ -154,13 +166,14 @@ namespace DigitalBookHistoryLoader.repositories
                 catch (DbException e)
                 {
                     Console.WriteLine($"Exception Caught!  Message : {e.Message}");
+                    taskLog.AppendLine($"Exception Caught!  Message : {e.Message}");
                 }
             }
 
             return keyValuePairs;
         }
 
-        private Dictionary<int, string> GetExistingArtistRows()
+        private Dictionary<int, string> GetExistingArtistRows(TaskLog taskLog)
         {
             Dictionary<int, string> keyValuePairs = new Dictionary<int, string>();
 
@@ -174,6 +187,7 @@ namespace DigitalBookHistoryLoader.repositories
                 catch (DbException e)
                 {
                     Console.WriteLine($"Exception Caught!  Message : {e.Message}");
+                    taskLog.AppendLine($"Exception Caught!  Message : {e.Message}");
                 }
             }
 
