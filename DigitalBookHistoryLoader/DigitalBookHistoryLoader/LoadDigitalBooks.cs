@@ -29,7 +29,7 @@ namespace DigitalBookHistoryLoader
 
             if (_digitalItems.Count > 0)
             {
-                loadSuccess = _titleRepo.LoadDigitalItemsToDb(_digitalItems);
+                loadSuccess = _titleRepo.LoadDigitalItemsToDb(_digitalItems, _taskLog);
             }
         }
 
@@ -39,8 +39,7 @@ namespace DigitalBookHistoryLoader
 
             try
             {
-                string results = ReadJsonToString(jsonToRead);
-                digitalItems = JsonConvert.DeserializeObject<List<DigitalItem>>(results);
+                digitalItems = JsonConvert.DeserializeObject<List<DigitalItem>>(jsonToRead);
             }
             catch (AggregateException e)
             {

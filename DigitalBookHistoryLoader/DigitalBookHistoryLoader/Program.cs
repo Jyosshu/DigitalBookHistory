@@ -51,7 +51,7 @@ namespace DigitalBookHistoryLoader
                 }
             }
 
-            string choice = null;
+            string choice = String.Empty;
             string[] answerArray = { "Y", "YES", "N", "NO" };
 
             while (!answerArray.Any(choice.Contains))
@@ -102,7 +102,7 @@ namespace DigitalBookHistoryLoader
                     }
                     catch (FileNotFoundException ex)
                     {
-                        Console.WriteLine($"There was an error accessing {fileToRead}.  {ex.Message}. {Environment.NewLine}Press q or x to exit.");
+                        Console.WriteLine($"There was an error accessing {fileToRead}.  {Environment.NewLine}{ex.Message}. {Environment.NewLine}Press q or x to exit.");
                         taskLog.AppendLine($"There was an error accessing {fileToRead}.  {ex.Message}");
                         var input = Console.ReadKey();
 
