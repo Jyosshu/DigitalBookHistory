@@ -9,12 +9,22 @@ using System.Linq;
 using System.Data.Common;
 using Microsoft.Data.SqlClient;
 using System.Runtime.InteropServices;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace DigitalBookHistoryLoader.repositories
 {
     public class ImageRepository : IImageRepository
     {
+        private readonly ILogger<ImageRepository> _log;
+        private readonly AppSettings _appSettings;
         private bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+        public ImageRepository(ILogger<ImageRepository> log, IOptionsSnapshot<AppSettings> appSettings)
+        {
+            _log = log;
+            _appSettings = appSettings.Value;
+        }
 
         public IDbConnection OpenConnection()
         {
@@ -22,11 +32,11 @@ namespace DigitalBookHistoryLoader.repositories
 
             if (isWindows == true)
             {
-                connection = new SqlConnection(AppSettings.ConnectionStrings.DefaultConnection);
+                connection = new SqlConnection(_appSettings.ConnectionStrings.DigitalBookSQL);
             }
             else
             {
-                connection = new NpgsqlConnection(AppSettings.ConnectionStrings.PostgresConnection);
+                connection = new NpgsqlConnection(_appSettings.ConnectionStrings.DigitalBookPostgres);
             }
 
             connection.Open();
@@ -47,7 +57,7 @@ namespace DigitalBookHistoryLoader.repositories
             }
             catch (DbException e)
             {
-                Console.WriteLine($"Exception Caught!  Message : {e.Message}");
+                _log.LogError(e.Message, e);
             }
 
             return titleFields;
@@ -91,7 +101,7 @@ namespace DigitalBookHistoryLoader.repositories
             }
             catch (DbException e)
             {
-                Console.WriteLine($"Exception Caught!  Message : {e.Message}");
+                _log.LogError(e.Message, e);
             }
 
             return true;
@@ -109,7 +119,7 @@ namespace DigitalBookHistoryLoader.repositories
                 }
                 catch (DbException e)
                 {
-                    Console.WriteLine($"Exception Caught!  Message : {e.Message}");
+                    _log.LogError(e.Message, e);
                 }
             }
 

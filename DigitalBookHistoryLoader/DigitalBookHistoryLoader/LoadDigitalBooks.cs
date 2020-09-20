@@ -4,32 +4,31 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using DigitalBookHistoryLoader.models;
 using DigitalBookHistoryLoader.interfaces;
-using DigitalBookHistoryLoader.repositories;
+using Microsoft.Extensions.Logging;
 
 namespace DigitalBookHistoryLoader
 {
-    public class LoadDigitalBooks
+    public class LoadDigitalBooks : ILoadDigitalBooks
     {
-        private List<DigitalItem> _digitalItems;
-        private TaskLog _taskLog;
+        private readonly ILogger<LoadDigitalBooks> _log;
+        private ITitleRepository _titleRepository;
         public bool loadSuccess = false;
 
-        private ITitleRepository _titleRepo = new TitleRepository();
-
-        public LoadDigitalBooks(TaskLog taskLog)
+        public LoadDigitalBooks(ILogger<LoadDigitalBooks> log, ITitleRepository titleRepository)
         {
-            _taskLog = taskLog;
+            _log = log;
+            _titleRepository = titleRepository;
         }
 
-        public void GetDigitalItemsFromString(string filename)
+        public void Run(string filePath)
         {
-            string jsonToRead = ReadJsonToString(filename);
-            _digitalItems = DeserializeDigitalItemsFromJson(jsonToRead);
-            
+            List<DigitalItem> digitalItems;
+            string jsonToRead = ReadJsonToString(filePath);
+            digitalItems = DeserializeDigitalItemsFromJson(jsonToRead);
 
-            if (_digitalItems.Count > 0)
+            if (digitalItems.Count > 0)
             {
-                loadSuccess = _titleRepo.LoadDigitalItemsToDb(_digitalItems, _taskLog);
+                loadSuccess = _titleRepository.LoadDigitalItemsToDb(digitalItems);
             }
         }
 
@@ -43,10 +42,10 @@ namespace DigitalBookHistoryLoader
             }
             catch (AggregateException e)
             {
-                Console.WriteLine($"Exception Caught!  Message : {e.Message}");
-                _taskLog.AppendLine($"Exception Caught!  Message : {e.Message}");
+                _log.LogError(e.Message, e);
             }
 
+            // Reorder the List to be sorted by date
             digitalItems.Reverse();
 
             return digitalItems;
@@ -65,8 +64,7 @@ namespace DigitalBookHistoryLoader
             }
             catch (IOException e)
             {
-                Console.WriteLine($"Exception Caught!  Message : {e.Message}");
-                _taskLog.AppendLine($"Exception Caught!  Message : {e.Message}");
+                _log.LogError(e.Message, e);
             }
 
             return results;

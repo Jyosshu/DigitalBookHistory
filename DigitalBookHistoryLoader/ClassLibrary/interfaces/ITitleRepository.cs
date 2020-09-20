@@ -7,6 +7,6 @@ namespace DigitalBookHistoryLoader.interfaces
     public interface ITitleRepository
     {
         //List<DigitalItem> GetHooplaHistory(string fileToRead);
-        bool LoadDigitalItemsToDb(List<DigitalItem> digitalItems, TaskLog taskLog);
+        bool LoadDigitalItemsToDb(List<DigitalItem> digitalItems);
     }
 }

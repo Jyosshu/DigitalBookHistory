@@ -1,11 +1,13 @@
 ﻿using System;
-using DigitalBookHistoryLoader.interfaces;
-using DigitalBookHistoryLoader.repositories;
-using DigitalBookHistoryLoader.models;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-//using Utilities;
+using Microsoft.Extensions.Configuration;
+using Serilog;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using DigitalBookHistoryLoader.interfaces;
+using DigitalBookHistoryLoader.repositories;
 
 namespace DigitalBookHistoryLoader
 {
@@ -14,31 +16,42 @@ namespace DigitalBookHistoryLoader
         static void Main(string[] args)
         {
             bool argsSuccess = false;
-            string saveLocation = null;
             string fileToRead = null;
-            string remoteUrlBase = AppSettings.RemoteImageUrl;
-            TaskLog taskLog = new TaskLog(AppSettings.LogfileFullNameAndPath);
-            List<TitleFields> titleFieldsList;
-            List<ImageFields> imageFieldsList = new List<ImageFields>();
-            IImageRepository imageRepository = new ImageRepository();
-            ITitleRepository titleRepository = new TitleRepository();
-            //Utilities.Utilities.OutputDirectory = new DirectoryInfo($"{AppDomain.CurrentDomain.BaseDirectory}");
+
+            var builder = new ConfigurationBuilder();
+            BuildConfig(builder);
+
+            Log.Logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(builder.Build())
+                .CreateLogger();
+
+            Log.Logger.Information("Application Starting");
+
+            var host = Host.CreateDefaultBuilder()
+                .ConfigureServices((context, services) =>
+                {
+                    services.AddTransient<ITitleRepository, TitleRepository>();
+                    services.AddTransient<IImageRepository, ImageRepository>();
+                    InitializeAppSettings(services);
+                })
+                .UseSerilog()
+                .Build();
 
             while (argsSuccess == false)
             {
-                if (args.Length < 2)
+                if (args.Length < 1)
                 {
-                    if (args.Length == 1 && args[0].ToLower() == "q")
+                    if (args.Length == 0 && args[0].ToLower() == "q")
                     {
-                        Console.WriteLine("Exiting program.");
+                        Log.Information("Exiting program.");
                         Environment.Exit(0);
                     }
                     else
                     {
                         Console.WriteLine("This program reads a Hoopla history json file.  Loads the json objects into a database.  Uses those records to download images from Hoopla's image server," +
                             " and finally creates and loads image records in the database.");
-                        Console.WriteLine($"Usage: {Environment.NewLine} \t\"jsonFileToRead\" \"saveLocationForImages\"");
-                        Console.WriteLine($"Example: {Environment.NewLine} \t\"C:\\folder\\fileToRead.json\"\"C:\\folder\\folder\\\"");
+                        Console.WriteLine($"Usage: {Environment.NewLine} \t\"jsonFileToRead\"");
+                        Console.WriteLine($"Example: {Environment.NewLine} \t\"C:\\folder\\fileToRead.json\"");
                         Console.WriteLine("Type q and press Enter to exit program");
                         args[0] = Console.ReadLine();
                     }
@@ -47,104 +60,50 @@ namespace DigitalBookHistoryLoader
                 {
                     argsSuccess = true;
                     fileToRead = args[0];
-                    saveLocation = args[1];
                 }
             }
 
-            string choice = String.Empty;
-            string[] answerArray = { "Y", "YES", "N", "NO" };
-
-            while (!answerArray.Any(choice.Contains))
+            try
             {
-                Console.WriteLine($"The current base URL for the remote image server == {remoteUrlBase}.  {Environment.NewLine}Is this still correct? (y / n)");
-                choice = Console.ReadLine();
-
-                // User enter new remote image hosting URL
-                if (choice.ToUpper() == "N" || choice.ToUpper() == "NO")
+                if (!File.Exists(fileToRead))
                 {
-                    bool leaveLoop = false;
-                    Uri testUri = null;
-
-                    while (leaveLoop == false)
-                    {
-                        Console.WriteLine("Enter the new temporary base URL, or q to exit program.");
-                        string tempURL = Console.ReadLine();
-
-                        if (tempURL.Length == 1 && (tempURL == "q" || tempURL == "Q" || tempURL.ToLower() == "quit"))
-                        {
-                            Environment.Exit(0);
-                        }
-                        else if (Uri.TryCreate(tempURL, UriKind.Absolute, out testUri))
-                        {
-                            Console.WriteLine($"Remote URL will temporarily be: {testUri}");
-                            remoteUrlBase = tempURL;
-                            leaveLoop = true;
-                        }
-                        else
-                        {
-                            Console.WriteLine($"You entered {tempURL}.  The format of this URL is invalid.{Environment.NewLine}The acceptable format is: http://www.example.com");
-                        }
-                    }
+                    throw new FileNotFoundException($"{ fileToRead } does not exist.");
                 }
                 else
                 {
-                    try
-                    {
-                        if (!File.Exists(fileToRead))
-                        {
-                            throw new FileNotFoundException($"{fileToRead} does not exist.");
-                        }
-                        else
-                        {
-                            LoadDigitalBooks loadDigitalBooks = new LoadDigitalBooks(taskLog);
-                            loadDigitalBooks.GetDigitalItemsFromString(fileToRead);
-                        }
-                    }
-                    catch (FileNotFoundException ex)
-                    {
-                        Console.WriteLine($"There was an error accessing {fileToRead}.  {Environment.NewLine}{ex.Message}. {Environment.NewLine}Press q or x to exit.");
-                        taskLog.AppendLine($"There was an error accessing {fileToRead}.  {ex.Message}");
-                        var input = Console.ReadKey();
+                    var svc = ActivatorUtilities.CreateInstance<LoadDigitalBooks>(host.Services);
+                    svc.Run(fileToRead);
 
-                        if (input.ToString().ToUpper() == "Q" || input.ToString().ToUpper() == "X")
-                        {
-                            Environment.Exit(1);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"There was an exception.  {ex.Message}");
-                        taskLog.AppendLine($"There was an exception.  {ex.Message}");
-                    }
-
-                    if (!Directory.Exists(saveLocation)) Directory.CreateDirectory(saveLocation);
-
-                    titleFieldsList = imageRepository.GetTitleFields();
-
-                    foreach (TitleFields title in titleFieldsList)
-                    {
-                        ImageFields image = new ImageFields
-                        {
-                            ArtKey = title.ArtKey,
-                            AltText = title.Title
-                        };
-
-                        image.RemoteUrl = $"{remoteUrlBase}{title.ArtKey}_270.jpeg";
-                        image.LocalPath = $"{saveLocation}\\{title.ArtKey}_270.jpeg";
-
-                        imageFieldsList.Add(image);
-                    }
-
-                    ImageDownloader.DownloadImage(imageFieldsList);
-
-                    bool imagesInserted = imageRepository.CreateImageFields(imageFieldsList);
-
-                    if (imagesInserted == true)
-                    {
-                        Console.WriteLine("Image records inserted into the database");
-                    }
+                    var imageSvc = ActivatorUtilities.CreateInstance<ImageDownloader>(host.Services);
+                    imageSvc.Run();
                 }
             }
+            catch (FileNotFoundException ex)
+            {
+                Log.Error(ex.Message, ex);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex.Message, ex);
+            }
+        }
+
+        private static void BuildConfig(IConfigurationBuilder builder)
+        {
+            builder.SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
+                .AddEnvironmentVariables();
+        }
+
+        private static void InitializeAppSettings(IServiceCollection serviceCollection)
+        {
+            IConfigurationRoot config = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddEnvironmentVariables()
+                .Build();
+
+            serviceCollection.Configure<AppSettings>(config);
         }
     }
 }

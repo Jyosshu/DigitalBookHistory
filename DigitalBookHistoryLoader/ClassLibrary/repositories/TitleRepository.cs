@@ -10,6 +10,8 @@ using DigitalBookHistoryLoader.models;
 using Dapper;
 using System.Linq;
 using System.Data.Common;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace DigitalBookHistoryLoader.repositories
 {
@@ -18,6 +20,14 @@ namespace DigitalBookHistoryLoader.repositories
         private static HttpClient HttpClient = new HttpClient();
         private readonly bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
         private List<Borrow> borrowsInDb;
+        private readonly ILogger<TitleRepository> _log;
+        private readonly AppSettings _appSettings;
+
+        public TitleRepository(ILogger<TitleRepository> log, IOptionsSnapshot<AppSettings> appSettings)
+        {
+            _log = log;
+            _appSettings = appSettings.Value;
+        }
 
         private IDbConnection OpenConnection()
         {
@@ -25,11 +35,11 @@ namespace DigitalBookHistoryLoader.repositories
 
             if (isWindows == true)
             {
-                connection = new SqlConnection(AppSettings.ConnectionStrings.DefaultConnection);
+                connection = new SqlConnection(_appSettings.ConnectionStrings.DigitalBookSQL);
             }
             else
             {
-                connection = new NpgsqlConnection(AppSettings.ConnectionStrings.PostgresConnection);
+                connection = new NpgsqlConnection(_appSettings.ConnectionStrings.DigitalBookPostgres);
             }
 
             connection.Open();
@@ -52,7 +62,7 @@ namespace DigitalBookHistoryLoader.repositories
             }
             catch (SqlException se)
             {
-                ErrorOutput(se.Message, se.InnerException.ToString());
+                _log.LogError(se.Message, se);
             }
 
             return results;
@@ -184,7 +194,7 @@ namespace DigitalBookHistoryLoader.repositories
                         catch (DbException e)
                         {
                             transaction.Rollback();
-                            ErrorOutput(e.Message, e.InnerException.ToString());
+                            _log.LogError(e.Message, e);
                         }
                     }
                     return true;
@@ -193,7 +203,7 @@ namespace DigitalBookHistoryLoader.repositories
             }
             catch (DbException e)
             {
-                ErrorOutput(e.Message, e.InnerException.ToString());
+                _log.LogError(e.Message, e);
                 return false;
             }
         }
@@ -211,7 +221,7 @@ namespace DigitalBookHistoryLoader.repositories
                 }
                 catch (DbException e)
                 {
-                    ErrorOutput(e.Message, e.InnerException.ToString());
+                    _log.LogError(e.Message, e);
                 }
             }
 
@@ -231,17 +241,11 @@ namespace DigitalBookHistoryLoader.repositories
                 }
                 catch (DbException e)
                 {
-                    ErrorOutput(e.Message, e.InnerException.ToString());
+                    _log.LogError(e.Message, e);
                 }
             }
 
             return keyValuePairs;
-        }
-
-        private void ErrorOutput(string message, string innerException)
-        {
-            Console.WriteLine("An exception was caught!  " + message + Environment.NewLine + innerException + Environment.NewLine);
-            // TODO: add log
         }
     }
 }
