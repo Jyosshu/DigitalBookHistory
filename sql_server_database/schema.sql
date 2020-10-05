@@ -3,71 +3,68 @@ BEGIN TRANSACTION;
 
 --ALTER TABLE digital_item DROP CONSTRAINT fk_digital_item_kind;
 --ALTER TABLE images DROP CONSTRAINT fk_image_digital_item;
-
-DROP TABLE IF EXISTS ratings, digital_item, borrows, images, kind, artist;
+--DROP TABLE IF EXISTS ratings, borrows, images, artist, digital_item, kind;
+DROP TABLE IF EXISTS Ratings, Borrows, Images, Artist, DigitalItem, Kind;
 
 -- Artist table
-CREATE TABLE artist
+CREATE TABLE Artist
 (
-    artistId INTEGER PRIMARY KEY,
-    artistName VARCHAR(255) UNIQUE	
+    ArtistId INTEGER IDENTITY,
+    ArtistName VARCHAR(255) UNIQUE	
 );
 
 -- Media Kind table
-CREATE TABLE kind
+CREATE TABLE Kind
 (
-    id INTEGER PRIMARY KEY,
-    name VARCHAR(255) NULL,
-    enabled BIT NULL,
-    singular VARCHAR(30) NULL,
-    plural VARCHAR(30) NULL
+    Id INTEGER PRIMARY KEY,
+    Name VARCHAR(255) NULL,
+    Enabled BIT NULL,
+    Singular VARCHAR(30) NULL,
+    Plural VARCHAR(30) NULL
 );
 
 -- Book table
-CREATE TABLE digital_item
+CREATE TABLE DigitalItem
 (
-    id INTEGER IDENTITY,
-    titleId BIGINT NULL,
-    title VARCHAR(255) NULL,
-    kindId INTEGER NULL,
-    artistName VARCHAR(255) NULL,
-    demo BIT NULL,
-    pa BIT NULL,
-    edited BIT NULL,    
-    artKey VARCHAR(255) UNIQUE,
-    --borrowed BIGINT NULL,
-    --returned BIGINT NULL,
-    circId BIGINT NULL,
-    fixedLayout BIT NULL,
-    readAlong BIT NULL,
-    CONSTRAINT fk_digital_item_kind FOREIGN KEY (kindId) REFERENCES kind(id)
+    Id INTEGER IDENTITY,
+    TitleId BIGINT NULL,
+    Title VARCHAR(255) NULL,
+    KindId INTEGER NULL,
+    ArtistName VARCHAR(255) NULL,
+    Demo BIT NULL,
+    Pa BIT NULL,
+    Edited BIT NULL,    
+    ArtKey VARCHAR(255) UNIQUE,
+    CircId BIGINT NULL,
+    FixedLayout BIT NULL,
+    ReadAlong BIT NULL,
+    CONSTRAINT fk_digital_item_kind FOREIGN KEY (KindId) REFERENCES Kind(Id)
 );
 
-CREATE TABLE borrows
+CREATE TABLE Borrows
 (
-    id INTEGER IDENTITY,
-    titleId BIGINT NULL,
-    borrowed BIGINT NULL,
-    returned BIGINT NULL,
+    Id INTEGER IDENTITY,
+    TitleId BIGINT NULL,
+    Borrowed BIGINT NULL,
+    Returned BIGINT NULL,
 );
 
-CREATE TABLE ratings
+CREATE TABLE Ratings
 (
-    id INTEGER PRIMARY KEY,
-    ratingSystemId INTEGER NULL, -- probably a rantingSystemId, (movieRatings, televisionRatings, comicRatings)
-    rating VARCHAR(10) NULL,
-    rank INTEGER NULL
+    Id INTEGER PRIMARY KEY,
+    RatingSystemId INTEGER NULL, -- probably a rantingSystemId, (movieRatings, televisionRatings, comicRatings)
+    Rating VARCHAR(10) NULL,
+    Rank INTEGER NULL
 );
 
 -- images
-CREATE TABLE images
+CREATE TABLE Images
 (
-    id INTEGER IDENTITY,
-    altText VARCHAR(255) NULL,
-    artKey VARCHAR(255) NULL,
-    remoteUrl VARCHAR(255) NULL,
-    localUrl VARCHAR(255) NULL,
-    CONSTRAINT fk_image_digital_item FOREIGN KEY (artKey) REFERENCES digital_item(artKey)
+    Id INTEGER IDENTITY,
+    AltText VARCHAR(255) NULL,
+    ArtKey VARCHAR(255) NULL,
+    RemoteUrl VARCHAR(255) NULL,
+    CONSTRAINT fk_image_digital_item FOREIGN KEY (ArtKey) REFERENCES DigitalItem(ArtKey)
 );
 
 

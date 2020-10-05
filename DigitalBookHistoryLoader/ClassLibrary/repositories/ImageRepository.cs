@@ -1,47 +1,25 @@
 ﻿using DigitalBookHistoryLoader.models;
 using DigitalBookHistoryLoader.interfaces;
-using System;
 using System.Collections.Generic;
 using Dapper;
 using System.Data;
-using Npgsql;
 using System.Linq;
 using System.Data.Common;
 using Microsoft.Data.SqlClient;
-using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Configuration;
 
 namespace DigitalBookHistoryLoader.repositories
 {
     public class ImageRepository : IImageRepository
     {
         private readonly ILogger<ImageRepository> _log;
-        private readonly AppSettings _appSettings;
-        private bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+        private readonly IConfiguration _config;
 
-        public ImageRepository(ILogger<ImageRepository> log, IOptionsSnapshot<AppSettings> appSettings)
+        public ImageRepository(ILogger<ImageRepository> log, IConfiguration config)
         {
             _log = log;
-            _appSettings = appSettings.Value;
-        }
-
-        public IDbConnection OpenConnection()
-        {
-            IDbConnection connection;
-
-            if (isWindows == true)
-            {
-                connection = new SqlConnection(_appSettings.ConnectionStrings.DigitalBookSQL);
-            }
-            else
-            {
-                connection = new NpgsqlConnection(_appSettings.ConnectionStrings.DigitalBookPostgres);
-            }
-
-            connection.Open();
-
-            return connection;
+            _config = config;
         }
 
         public List<TitleFields> GetTitleFields()
@@ -50,9 +28,12 @@ namespace DigitalBookHistoryLoader.repositories
 
             try
             {
-                using (var connection = OpenConnection())
+                string connstr = _config.GetConnectionString("SQLCONNSTR_DIGITALBOOK");
+                using (IDbConnection connection = new SqlConnection(connstr))
                 {
-                    titleFields = connection.Query<TitleFields>("SELECT title, artKey FROM digital_item").AsList();
+                    connection.Open();
+
+                    titleFields = connection.Query<TitleFields>("SELECT Title, ArtKey FROM DigitalItem").ToList();
                 }
             }
             catch (DbException e)
@@ -65,36 +46,45 @@ namespace DigitalBookHistoryLoader.repositories
 
         public bool CreateImageFields(List<ImageFields> imageFields)
         {
-            Dictionary<int, string> existingImageRecords = new Dictionary<int, string>();
-            int currentMaxImageId = 0;
-            string query = @"INSERT INTO images (altText, artKey, remoteUrl, localUrl) VALUES (@AltText, @ArtKey, @RemoteUrl, @LocalUrl)";
+            List<string> existingImageRecords;
+            string query = @"INSERT INTO Images (AltText, ArtKey, RemoteUrl) VALUES (@AltText, @ArtKey, @RemoteUrl)";
 
             try
             {
                 existingImageRecords = GetExistingImageRecordsFromDb();
-                currentMaxImageId = existingImageRecords.Max().Key;
 
-                using (var connection = OpenConnection())
+                string connstr = _config.GetConnectionString("SQLCONNSTR_DIGITALBOOK");
+                using (IDbConnection connection = new SqlConnection(connstr))
                 {
+                    connection.Open();
+
                     using (IDbTransaction transaction = connection.BeginTransaction())
                     {
                         foreach (ImageFields image in imageFields)
                         {
-                            if (!existingImageRecords.ContainsValue(image.ArtKey))
+                            try
                             {
-                                var rowsInserted = connection.Execute(query, new { image.AltText, image.ArtKey, image.RemoteUrl, LocalUrl = image.LocalPath }, transaction: transaction);
+                                if (!existingImageRecords.Contains(image.ArtKey))
+                                {
+                                    var rowsInserted = connection.Execute(query, new { image.AltText, image.ArtKey, image.RemoteUrl }, transaction: transaction);
 
-                                if (rowsInserted != 1)
-                                {
-                                    transaction.Rollback();
-                                }
-                                else
-                                {
-                                    existingImageRecords.Add(currentMaxImageId, image.ArtKey);
-                                    currentMaxImageId++;
+                                    if (rowsInserted != 1)
+                                    {
+                                        transaction.Rollback();
+                                    }
+                                    else
+                                    {
+                                        existingImageRecords.Add(image.ArtKey);
+                                    }
                                 }
                             }
+                            catch (DbException de)
+                            {
+                                _log.LogError(de.Message, de);
+                                transaction.Rollback();
+                            }
                         }
+
                         transaction.Commit();
                     }
                 }
@@ -107,23 +97,24 @@ namespace DigitalBookHistoryLoader.repositories
             return true;
         }
 
-        private Dictionary<int, string> GetExistingImageRecordsFromDb()
+        private List<string> GetExistingImageRecordsFromDb()
         {
-            Dictionary<int, string> keyValuePairs = new Dictionary<int, string>();
-
-            using (var connection = OpenConnection())
+            string connstr = _config.GetConnectionString("SQLCONNSTR_DIGITALBOOK");
+            using (IDbConnection connection = new SqlConnection(connstr))
             {
+                connection.Open();
+
                 try
                 {
-                    var results = connection.Query("SELECT id, artKey FROM image").ToDictionary(row => (int)row.id, row => (string)row.artKey);
+                    var results = connection.Query<string>("SELECT ArtKey FROM Images").ToList();
+                    return results;
                 }
                 catch (DbException e)
                 {
                     _log.LogError(e.Message, e);
+                    return null;
                 }
             }
-
-            return keyValuePairs;
         }
     }
 }

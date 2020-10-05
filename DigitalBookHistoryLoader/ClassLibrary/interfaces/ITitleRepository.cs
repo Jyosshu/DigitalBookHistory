@@ -6,7 +6,10 @@ namespace DigitalBookHistoryLoader.interfaces
 {
     public interface ITitleRepository
     {
-        //List<DigitalItem> GetHooplaHistory(string fileToRead);
-        bool LoadDigitalItemsToDb(List<DigitalItem> digitalItems);
+        List<string> GetExistingArtistRows();
+        List<Borrow> GetExistingBorrows();
+        void LoadDigitalItemToDb(DigitalItem digitalItem);
+        void LoadBorrowToDb(Borrow borrow);
+        bool LoadArtistToDb(string artistName);
     }
 }

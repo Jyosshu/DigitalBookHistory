@@ -1,5 +1,5 @@
 ﻿
-namespace DigitalBookHistoryLoader
+namespace ClassLibrary
 {
     public class AppSettings
     {

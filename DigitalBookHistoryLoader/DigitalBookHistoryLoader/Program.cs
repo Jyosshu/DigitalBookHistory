@@ -32,7 +32,6 @@ namespace DigitalBookHistoryLoader
                 {
                     services.AddTransient<ITitleRepository, TitleRepository>();
                     services.AddTransient<IImageRepository, ImageRepository>();
-                    InitializeAppSettings(services);
                 })
                 .UseSerilog()
                 .Build();
@@ -74,8 +73,6 @@ namespace DigitalBookHistoryLoader
                     var svc = ActivatorUtilities.CreateInstance<LoadDigitalBooks>(host.Services);
                     svc.Run(fileToRead);
 
-                    var imageSvc = ActivatorUtilities.CreateInstance<ImageDownloader>(host.Services);
-                    imageSvc.Run();
                 }
             }
             catch (FileNotFoundException ex)
@@ -86,6 +83,10 @@ namespace DigitalBookHistoryLoader
             {
                 Log.Error(ex.Message, ex);
             }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
         }
 
         private static void BuildConfig(IConfigurationBuilder builder)
@@ -94,16 +95,6 @@ namespace DigitalBookHistoryLoader
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
                 .AddEnvironmentVariables();
-        }
-
-        private static void InitializeAppSettings(IServiceCollection serviceCollection)
-        {
-            IConfigurationRoot config = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddEnvironmentVariables()
-                .Build();
-
-            serviceCollection.Configure<AppSettings>(config);
         }
     }
 }
