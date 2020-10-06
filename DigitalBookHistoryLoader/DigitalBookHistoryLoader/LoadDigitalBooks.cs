@@ -6,7 +6,6 @@ using DigitalBookHistoryLoader.models;
 using DigitalBookHistoryLoader.interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
-using System.Runtime.InteropServices.WindowsRuntime;
 
 namespace DigitalBookHistoryLoader
 {
@@ -65,12 +64,14 @@ namespace DigitalBookHistoryLoader
                         else
                         {
                             _titleRepository.LoadBorrowToDb(borrow);
+                            _borrowsInDb.Add(borrow);
                         }
                     }
                     else
                     {
                         _titleRepository.LoadDigitalItemToDb(item);
                         _titleRepository.LoadBorrowToDb(borrow);
+                        _borrowsInDb.Add(borrow);
                     }
 
                     if (!artistUniqueCheck.Contains(item.ArtistName))
