@@ -6,7 +6,6 @@ using DigitalBookHistoryLoader.models;
 using DigitalBookHistoryLoader.interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
-using System.Runtime.InteropServices.WindowsRuntime;
 
 namespace DigitalBookHistoryLoader
 {
