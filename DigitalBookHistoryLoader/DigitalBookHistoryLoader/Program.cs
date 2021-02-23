@@ -8,6 +8,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using DigitalBookHistoryLoader.interfaces;
 using DigitalBookHistoryLoader.repositories;
+using CommandLine;
+using CommandLine.Text;
 
 namespace DigitalBookHistoryLoader
 {
@@ -15,8 +17,11 @@ namespace DigitalBookHistoryLoader
     {
         static void Main(string[] args)
         {
-            bool argsSuccess = false;
-            string fileToRead = null;
+            Options parsedOptions = new Options();
+
+            var options = Parser.Default.ParseArguments<Options>(args)
+                .WithParsed(parsed => parsedOptions = parsed)
+                .WithNotParsed(errors => Log.Error("There was an error parsing the command line arguments.", errors));
 
             var builder = new ConfigurationBuilder();
             BuildConfig(builder);
@@ -36,48 +41,22 @@ namespace DigitalBookHistoryLoader
                 .UseSerilog()
                 .Build();
 
-            while (argsSuccess == false)
-            {
-                if (args.Length < 1)
-                {
-                    if (args.Length == 0 && args[0].ToLower() == "q")
-                    {
-                        Log.Information("Exiting program.");
-                        Environment.Exit(0);
-                    }
-                    else
-                    {
-                        Console.WriteLine("This program reads a Hoopla history json file.  Loads the json objects into a database.  Uses those records to download images from Hoopla's image server," +
-                            " and finally creates and loads image records in the database.");
-                        Console.WriteLine($"Usage: {Environment.NewLine} \t\"jsonFileToRead\"");
-                        Console.WriteLine($"Example: {Environment.NewLine} \t\"C:\\folder\\fileToRead.json\"");
-                        Console.WriteLine("Type q and press Enter to exit program");
-                        args[0] = Console.ReadLine();
-                    }
-                }
-                else
-                {
-                    argsSuccess = true;
-                    fileToRead = args[0];
-                }
-            }
-
             try
             {
-                if (!File.Exists(fileToRead))
+                if (!File.Exists(parsedOptions.InputFile))
                 {
-                    throw new FileNotFoundException($"{ fileToRead } does not exist.");
+                    throw new FileNotFoundException($"{ parsedOptions.InputFile } does not exist.");
                 }
                 else
                 {
                     var svc = ActivatorUtilities.CreateInstance<LoadDigitalBooks>(host.Services);
-                    svc.Run(fileToRead);
+                    svc.Run(parsedOptions.InputFile);
 
                 }
             }
-            catch (FileNotFoundException ex)
+            catch (IOException ie)
             {
-                Log.Error(ex.Message, ex);
+                Log.Error(ie.Message, ie);
             }
             catch (Exception ex)
             {

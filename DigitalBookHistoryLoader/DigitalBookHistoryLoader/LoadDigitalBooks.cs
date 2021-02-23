@@ -1,11 +1,11 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
-using Newtonsoft.Json;
 using DigitalBookHistoryLoader.models;
 using DigitalBookHistoryLoader.interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
+using System.Text.Json;
 
 namespace DigitalBookHistoryLoader
 {
@@ -29,18 +29,25 @@ namespace DigitalBookHistoryLoader
 
         public void Run(string filePath)
         {
-            List<DigitalItem> digitalItems;
-            string jsonToRead = ReadJsonToString(filePath);
-            digitalItems = DeserializeDigitalItemsFromJson(jsonToRead);
-
-            if (digitalItems.Count > 0)
+            try
             {
-                loadSuccess = LoadDigitalItemsToDb(digitalItems);
+                List<DigitalItem> digitalItems;
+                string jsonToRead = ReadJsonToString(filePath);
+                digitalItems = DeserializeDigitalItemsFromJson(jsonToRead);
 
-                if (loadSuccess)
+                if (digitalItems.Count > 0)
                 {
-                    LoadImageFieldsToDb();
+                    loadSuccess = LoadDigitalItemsToDb(digitalItems);
+
+                    if (loadSuccess)
+                    {
+                        LoadImageFieldsToDb();
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                _log.LogError(e.Message, e);
             }
         }
 
@@ -122,16 +129,14 @@ namespace DigitalBookHistoryLoader
 
         private List<DigitalItem> DeserializeDigitalItemsFromJson(string jsonToRead)
         {
-            List<DigitalItem> digitalItems = new List<DigitalItem>();
+            List<DigitalItem> digitalItems;
 
-            try
+            var options = new JsonSerializerOptions
             {
-                digitalItems = JsonConvert.DeserializeObject<List<DigitalItem>>(jsonToRead);
-            }
-            catch (AggregateException e)
-            {
-                _log.LogError(e.Message, e);
-            }
+                PropertyNameCaseInsensitive = true
+            };
+
+            digitalItems = JsonSerializer.Deserialize<List<DigitalItem>>(jsonToRead, options);
 
             // Reorder the List to be sorted by date
             digitalItems.Reverse();
