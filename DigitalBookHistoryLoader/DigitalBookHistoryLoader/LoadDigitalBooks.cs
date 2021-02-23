@@ -71,12 +71,14 @@ namespace DigitalBookHistoryLoader
                         else
                         {
                             _titleRepository.LoadBorrowToDb(borrow);
+                            _borrowsInDb.Add(borrow);
                         }
                     }
                     else
                     {
                         _titleRepository.LoadDigitalItemToDb(item);
                         _titleRepository.LoadBorrowToDb(borrow);
+                        _borrowsInDb.Add(borrow);
                     }
 
                     if (!artistUniqueCheck.Contains(item.ArtistName))
