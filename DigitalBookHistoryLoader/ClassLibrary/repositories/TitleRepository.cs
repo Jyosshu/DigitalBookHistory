@@ -15,7 +15,6 @@ namespace DigitalBookHistoryLoader.repositories
 {
     public class TitleRepository : ITitleRepository
     {
-        private static HttpClient HttpClient = new HttpClient();              
         private readonly ILogger<TitleRepository> _log;
         private readonly IConfiguration _config;
 
@@ -192,7 +191,7 @@ namespace DigitalBookHistoryLoader.repositories
             return keyValuePairs;
         }
 
-        public List<string> GetExistingArtistRows()
+        public List<string> GetExistingArtistsFromDb()
         {
             string connstr = _config.GetConnectionString("SQLCONNSTR_DIGITALBOOK");
             using (IDbConnection connection = new SqlConnection(connstr))

@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Microsoft.Extensions.Configuration;
 using Serilog;
 using Microsoft.Extensions.Hosting;
@@ -9,7 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using DigitalBookHistoryLoader.interfaces;
 using DigitalBookHistoryLoader.repositories;
 using CommandLine;
-using CommandLine.Text;
 
 namespace DigitalBookHistoryLoader
 {
