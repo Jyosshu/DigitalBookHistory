@@ -6,20 +6,14 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using DigitalBookHistoryLoader.interfaces;
 using DigitalBookHistoryLoader.repositories;
-using CommandLine;
+using System.Threading.Tasks;
 
 namespace DigitalBookHistoryLoader
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            Options parsedOptions = new Options();
-
-            var options = Parser.Default.ParseArguments<Options>(args)
-                .WithParsed(parsed => parsedOptions = parsed)
-                .WithNotParsed(errors => Log.Error("There was an error parsing the command line arguments.", errors));
-
             var builder = new ConfigurationBuilder();
             BuildConfig(builder);
 
@@ -40,16 +34,11 @@ namespace DigitalBookHistoryLoader
 
             try
             {
-                if (!File.Exists(parsedOptions.InputFile))
-                {
-                    throw new FileNotFoundException($"{ parsedOptions.InputFile } does not exist.");
-                }
-                else
-                {
-                    var svc = ActivatorUtilities.CreateInstance<LoadDigitalBooks>(host.Services);
-                    svc.Run(parsedOptions.InputFile);
+                var httpSvc = ActivatorUtilities.CreateInstance<HooplaHttp>(host.Services);
+                string jsonResponse = await httpSvc.GetHooplaHistory();
 
-                }
+                var svc = ActivatorUtilities.CreateInstance<LoadDigitalBooks>(host.Services);
+                svc.Run(jsonResponse);
             }
             catch (IOException ie)
             {

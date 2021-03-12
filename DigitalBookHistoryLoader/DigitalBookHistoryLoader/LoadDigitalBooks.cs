@@ -27,13 +27,13 @@ namespace DigitalBookHistoryLoader
             _imageRepository = imageRepository;
         }
 
-        public void Run(string filePath)
+        public void Run(string jsonResponse)
         {
             try
             {
                 List<DigitalItem> digitalItems;
-                string jsonToRead = ReadJsonToString(filePath);
-                digitalItems = DeserializeDigitalItemsFromJson(jsonToRead);
+                //string jsonToRead = ReadJsonToString(filePath);
+                digitalItems = DeserializeDigitalItemsFromJson(jsonResponse);
 
                 if (digitalItems.Count > 0)
                 {
@@ -136,7 +136,7 @@ namespace DigitalBookHistoryLoader
             }
         }
 
-        private List<DigitalItem> DeserializeDigitalItemsFromJson(string jsonToRead)
+        private static List<DigitalItem> DeserializeDigitalItemsFromJson(string jsonToRead)
         {
             if (string.IsNullOrEmpty(jsonToRead))
                 throw new ArgumentNullException($"The argument { nameof(jsonToRead) } was null or empty.");
@@ -156,27 +156,27 @@ namespace DigitalBookHistoryLoader
             return digitalItems;
         }
 
-        private string ReadJsonToString(string fileToRead)
-        {
-            if (string.IsNullOrEmpty(fileToRead))
-                throw new ArgumentNullException($"The argument { nameof(fileToRead) } was null or empty.");
+        //private string ReadJsonToString(string fileToRead)
+        //{
+        //    if (string.IsNullOrEmpty(fileToRead))
+        //        throw new ArgumentNullException($"The argument { nameof(fileToRead) } was null or empty.");
 
-            string results = null;
+        //    string results = null;
 
-            try
-            {
-                using (var reader = new StreamReader(fileToRead))
-                {
-                    results = reader.ReadToEnd();
-                }
-            }
-            catch (IOException e)
-            {
-                _log.LogError(e.Message, e);
-            }
+        //    try
+        //    {
+        //        using (var reader = new StreamReader(fileToRead))
+        //        {
+        //            results = reader.ReadToEnd();
+        //        }
+        //    }
+        //    catch (IOException e)
+        //    {
+        //        _log.LogError(e.Message, e);
+        //    }
 
-            return results;
-        }
+        //    return results;
+        //}
 
         private Tuple<bool, bool> BorrowExists(Borrow borrowToCheck)
         {
